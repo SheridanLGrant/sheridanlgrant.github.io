@@ -1,0 +1,142 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Syllabus: STAT 302 SPR 2020}
+\author{Sheridan Grant\\(\textit{not yet} a Doctor; call me ``Sheridan'' or ``Prof. Grant'')\\\href{mailto:slgstats@uw.edu}{slgstats@uw.edu}}
+\date{March 26, 2020}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Logistics}
+
+\begin{itemize}
+	\item \textbf{First class on Zoom:} Monday, March 30, 3:30-4:50pm Pacific time.
+	\item \textbf{Mandatory} Zoom active lectures: Wednesdays 3:30-4:50pm Pacific time.
+	\item Zoom recorded lectures: posted Mondays, should be watched before Wednesday's lecture. \textbf{Ignore at your own risk.}
+	\item Zoom office hours: Mondays 1-3pm Pacific time (except Monday, March 30); Fridays 4-6pm Pacific time. If these times are difficult for you, email me and we can set up Zoom sessions at other times when necessary.
+	\item Communications: any questions about homework, course content, or math/stats/programming in general should be asked on the class \href{https://piazza.com/washington/spring2020/stat302}{Piazza}. \textbf{I will not answer these questions by email.} I will check Piazza every weekday and probably most weekend days. Personal questions (``you miscalculated my points on this homework''; I missed active lecture due to illness, can I get participation credit, etc.) should be emailed.
+	\item \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{Course website} will host homework assignments, lecture slides, syllabus, helpful links---course info in general.
+	\item \href{https://piazza.com/washington/spring2020/stat302}{Piazza} discussion board for homework and project questions
+	\item \href{https://canvas.uw.edu/}{Canvas} for checking grades and uploading homeworks \textbf{only}.
+\end{itemize}
+
+\section*{Covid-19 (Coronavirus) and Online Classes}
+
+Might as well address the elephant in the room: coronavirus and the ensuing online spring quarter. My goals for the course with respect to coronavirus are twofold: first, I will respect the difficulties that coronavirus and online learning impose on students. Some of you may be living in far-away time zones; for this reason, only 1 class per week will be ``active lecture,'' in which you will respond real-time to questions for participation credit and do short programming exercises that we will discuss. If you become ill or for some other reason related to coronavirus, economic hardship, etc. cannot attend active lecture or submit an assignment on time, I will work with you to ensure that you still earn the credit you deserve (and learn the material). The grading scheme for this class is designed to make earning above a 2.0 straightforward even if you do not do as well on some parts of the course as you ordinarily would. You can think of grades as gravitating towards a 3.0: I do not want anyone that is working hard to not receive credit for the class due to the strange circumstances surrounding coronavirus, but you will also need to demonstrate true mastery of the material to earn grades close to a 4.0.
+
+Second, this is still a University of Washington statistics class, and I do not intend to make it easy even though it is online and the coronavirus epidemic is a legitimate distraction. My hope is that everyone in the course receives credit, and the course design is flexible enough for anyone who makes an earnest effort to receive credit. But the class will take time and effort---programming is hard, statistics is hard, and you will need to engage with material frequently to learn it.
+
+\section*{Prerequisites}
+
+\begin{itemize}
+	\item Courses: either STAT 311/ECON 311 or STAT 390/MATH 390
+	\item \textbf{No prior programming experience is assumed.} If you've programmed before, the first couple weeks of the course might be a little slow for you. \textbf{Anyone can learn to program, regardless of gender, age, or disabilities. Programming is hard. It may not come easily for you---but you can do it.}
+	\item While this course is primarily about programming, it is also about data science and statistics. You will be expected to know the material in the prerequisite course, and will be required to write analyses, interpret hypothesis tests and estimates, and use good statistical sense.
+\end{itemize}
+
+\section*{Learning Goals}
+
+Affective Learning Goals: how is our relationship with programming/math/stats?
+\begin{itemize}
+	\item We will come to see success in programming (and math and statistics) as a product of \textbf{effort rather than ``natural ability.''} There's no such thing as ``math people'' and ``non-math people.''
+	\item We will discover that solving programming problems is a creative, rather than procedural, process.
+	\item We will develop resilience in problem solving by allowing failure of an initial approach to motivate other approaches that will succeed.
+\end{itemize}
+
+Cognitive Learning Goals: what will we learn about programming/math/stats as a whole?
+\begin{itemize}
+	\item We will write \textbf{elegant and generalizable code}. Code is written to be read and used by others, and extended/revised by yourself and others.
+	\item We will write \textbf{robust code}, by thoroughly testing and trying to ``break'' our own code. Similarly, we will do \textbf{robust data science}, by trying to understand when our models behave as we expect and when they do not.
+\end{itemize}
+
+\section*{Homework}
+
+There will be \textbf{two} weekly assignments. The first (``Completion'') will be assigned on Monday \textbf{(except for the first Monday, March 30)}, along with the recorded lecture, and due before Wednesday's class (3:30pm Pacific time). These will be \textbf{a completion grade:} 0 = did not submit, 1 = low effort or mostly incorrect, 2 = clear effort and at least somewhat correct. They are designed to make sure you watched and followed the Monday recorded lecture, and should be easy credit.
+
+The second (``Graded'') will be assigned Wednesday after lecture and due the following Monday by 11:59pm Pacific time. This assignment will be longer and graded.
+
+Both assignments will be uploaded on Canvas under the associated assignment.
+
+\section*{Grading}
+
+In each Wednesday lecture, I will ask questions and expect responses in the Zoom chat. You will receive 2 points for this ``Active Lecture Participation'' if you respond to most questions; 1 point if you respond to only some of the questions; and 0 points if you do not respond at all.
+
+I will calculate your final average as 
+\begin{align*}
+&0.15 \cdot \text{Active Lecture Participation} + 0.2 \cdot \text{Completion Homework Average} \\ + &0.4 \cdot \text{Graded Homework Average} + 0.25 \cdot \text{Final Project Grade}.
+\end{align*}
+I will not detail exactly how this final average maps to the GPA scale, but I expect $\approx 60\%$ to be the cutoff for a 2.0. \textbf{The purpose of giving you this formula is for you to understand the relative importance of the coursework:} $1/3$ of the course credit is merely completion, so if you participate actively in lectures and keep up with the completion homeworks, you have a great ``cushion'' for the $2/3$ of the final average that is graded.
+
+\section*{Academic Integrity (Cheating)}
+
+\textbf{I will not hesitate to report academic dishonesty to UW and/or penalize you via your grade.} Academic integrity in an online programming-based course is tricky. Here are the rules:
+\begin{itemize}
+	\item You may work with others in the class, but you may not copy any part a classmate's code. For example, if you figure out how to solve part of a problem, you may call your classmate and discuss how to solve it, or link them to a website you found helpful, but \textbf{you may not send them your code}. If you are working together on Zoom or in person and can see your partner's code, that's okay, but you still must write your own code. For very simple programming problems, it may be the case that most people have the same code, but for more complex problems everyone's code will be slightly different. \textbf{If you work on a Graded assignment with a partner:}, you must put the comment \verb|# Partner: partner's name| near the beginning of your submitted code.
+	\item If you find code on the internet that helps you with a problem (this will probably happen frequently), you may copy it, but \textbf{you must alter it to suit the problem and code you have already written}. So if the code you found names the data table \verb|dat| and your code names it \verb|stocks|, rename the data table in the copied code \verb|stocks|.
+	\item All non-code writing must be your own.
+\end{itemize}
+
+\section*{Miscellaneous}
+
+\begin{itemize}
+	\item Recommendation letter policy: you may want a recommendation letter from me. First, note that a recommendation letter from a PhD student carries much less weight than a letter from a professor, so for your own sake consider asking a professor first. Second, you will need to both do very well in the class (3.8+ GPA) and demonstrate interest in the subject for me to be able to write you an effective letter.
+	\item DRS: if you have established accommodations with Disability Resources for Students (DRS), please let me know ASAP. If you feel you need special accommodations but have not yet established accommodations with DRS, contact me or DRS directly. DRS can help accommodate conditions including, but not limited to: mental health, attention-related, learning, vision, hearing, physical, or other conditions. DRS can be contacted at 206-543-8924, \href{mailto:uwdrs@uw.edu}{uwdrs@uw.edu}, or their \href{http://depts.washington.edu/uwdrs/}{website}.
+\end{itemize}
+
+\end{document}
