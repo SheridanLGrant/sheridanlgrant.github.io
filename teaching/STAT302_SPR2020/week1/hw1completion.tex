@@ -1,0 +1,78 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 1 Completion\\\textbf{SUGGESTED, NOT DUE, DO NOT TURN IN}}
+\author{Sheridan Grant}
+\date{March 30, 2020}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section{Kooky Kalculations}
+
+Build up to a tricky calculation by combining different bits of R code.
+\begin{enumerate}
+	\item The ``modulus'' operator is \verb|%%|. The code \verb|x %% y| outputs the remainder after dividing \verb|x| by \verb|y|. For example, \verb|18 %% 5| outputs \verb|3|. For what positive integers \verb|x| is \verb|x %% y| equal to 0 \textit{only} if \verb|y == x| or \verb|y == 1|? Find some examples. Do these numbers have a name?
+	\item You can do operations like \verb|+,-,*,/| with lists. See what happens when you run \verb|(1:100) + 5|. Then run \verb|(1:100) %% 2|. What does this code have the computer figure out about the numbers from 1 to 100?
+	\item Write code to output a vector of ``logicals'' (\verb|TRUE|s and \verb|FALSE|s) where the $n$th logical is \verb|TRUE| if $n$ is \textit{even} (hint: your solution will probably use \verb|!|).
+	\item Read about the \verb|which| function. Write a line of code that finds the indices of the even integers from 1 to 100 (i.e. outputs \verb|2 4 6 8| etc.).
+	\item You can ``multi-index'' vectors. For example, \verb|(3:8)[5]| outputs \verb|7|, but what does \verb|(3:8)[c(1,3,5)]| output?
+	\item Using everything you learned above, write a line of code that computes the sum of the even numbers from 1 to 100.
+\end{enumerate}
+
+\end{document}
