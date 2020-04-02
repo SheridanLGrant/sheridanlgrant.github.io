@@ -33,6 +33,7 @@
 \newcommand{\Pois}{\text{Pois}}
 \newcommand{\Cauchy}{\text{Cauchy}}
 \newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
 
 \newcommand{\Ind}{\textbf{1}}
 \newcommand{\sign}{\text{sign}}
@@ -55,24 +56,62 @@
 \newcommand{\Pscript}{\mathcal{P}}
 \newcommand{\Mscript}{\mathcal{M}}
 
-\title{Homework 1 Completion\\\textbf{SUGGESTED, NOT DUE, DO NOT TURN IN}}
+\title{Homework 1 Graded}
 \author{Sheridan Grant}
-\date{March 30, 2020}
+\date{Must be uploaded to Canvas under ``Homework 1 Graded'' by \textbf{Monday, April 6 at 11:59pm}}
 
 \begin{document}\sloppy
 
 \maketitle
 
-\section{Kooky Kalculations}
+\section*{Instructions}
 
-Build up to a tricky calculation by combining different bits of R code.
-\begin{enumerate}
-	\item The ``modulus'' operator is \verb|%%|. The code \verb|x %% y| outputs the remainder after dividing \verb|x| by \verb|y|. For example, \verb|18 %% 5| outputs \verb|3|. For what positive integers \verb|x| is \verb|x %% y| equal to 0 \textit{only} if \verb|y == x| or \verb|y == 1|? Find some examples. Do these numbers have a name?
-	\item You can do operations like \verb|+,-,*,/| with lists. See what happens when you run \verb|(1:100) + 5|. Then run \verb|(1:100) %% 2|. What does this code have the computer figure out about the numbers from 1 to 100?
-	\item Write code to output a vector of ``logicals'' (\verb|TRUE|s and \verb|FALSE|s) where the $n$th logical is \verb|TRUE| if $n$ is \textit{even} (hint: your solution will probably use \verb|!|).
-	\item Read about the \verb|which| function. Write a line of code that finds the indices of the even integers from 1 to 100 (i.e. outputs \verb|2 4 6 8| etc.).
-	\item You can ``multi-index'' vectors. For example, \verb|(3:8)[5]| outputs \verb|7|, but what does \verb|(3:8)[c(1,3,5)]| output?
-	\item Using everything you learned above, write a line of code that computes the sum of the even numbers from 1 to 100.
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below. Your code should not produce errors; if it does so, we will be lenient in grading this first assignment, but not in the future.
+
+\section{R Basics}
+
+\begin{enumerate}[(a)]
+	\item Write a line of code that generates a vector of length 47 and does not contain the number $1$. [1pt]
+	\item Write a line of code that assigns a vector of length 47 to a variable. [1pt]
+	\item Write a line of code that generates a vector of length 47 with a mean of $0$ and assigns it to a variable. Write another line of code that demonstrates that its mean really is $0$. [2pts]
+	\item Using no more than 5 lines of code, generate a vector of length 47 named "standardized" with a sample standard deviation of $1$. It might be helpful to figure out what happens to the standard deviation of a mean-zero vector when it is multiplied by a constant. [3pts]
+	\item Write code that computes the sum of all the multiples of $3$ between 100 and 200. [3pts]
+\end{enumerate}
+
+\section{Data Types}
+
+We've seen a few data types in class so far, including numerics, integers, logicals, and vectors. You'll learn about a few more on your own for this problem.
+
+The class of functions \verb|is.[data type]| return \verb|TRUE| if their argument is of type \verb|[data type]| and \verb|FALSE| otherwise. For instance, \verb|is.numeric(x)| returns \verb|TRUE| if \verb|x| is numeric and \verb|FALSE| otherwise.
+
+\begin{enumerate}[(a)]
+\item Assign the variable \verb|notLogical| a value such that \verb|is.logical(notLogical)| returns \verb|FALSE|. [1pt]
+\item Write a single line of code using \verb|is.logical| and \verb|notLogical| (and some other stuff) that returns \verb|TRUE|. [1pt]
+\item Write two lines of code that demonstrate that \verb|is.numeric| and \verb|is.integer| are not the same function. [2pts]
+\item One data type we did not talk about is the character type. Characters (or chars) begin and end with \verb|"| or \verb|'|. For example, \verb|"Hello, world!"| and \verb|'foo! bar!'| are both chars. The opening and closing quotes must match---\verb|"incorrect'| is not a char. Assign your full name (as a character, including spaces) to the variable \verb|name|. Write a line of code that verifies that \verb|name| is a char type. [2pts]
+\item Write a line of code that returns your name in all uppercase. You will need to find a function that does this, and apply it to \verb|name|. [2pts]
+\end{enumerate}
+
+\section{Normal Distribution Functions}
+
+For many distributions, R includes 4 functions that do useful things. For the Normal distribution, they are \verb|rnorm|, \verb|pnorm|, \verb|dnorm|, and \verb|qnorm|. You should read about these functions on your own so you understand what they do.
+
+\begin{enumerate}[(a)]
+	\item Using \verb|pnorm| (which we saw in class), demonstrate that there is approximately a 95\% chance that a Normal random variable lies between $-1.96$ and $1.96$. [2pts]
+	\item Using \verb|qnorm|, demonstrate that there is exactly a 95\% chance that a Normal random variable lies between approximately $-1.96$ and approximately $1.96$. [2pts]
+	\item Using \verb|rnorm|, generate a vector of $10,000$ samples from the standard Normal distribution. What percentage of them are between $-1.96$ and $1.96$? [2pts]
+	\item Using \verb|dnorm| and the vector from the previous problem, show that the value in the vector with the highest density (under the standard Normal distribution) is the one that is closest to zero. [3pts]
+	\item Generate a histogram of the vector from part (c). You can do this very easily with R, but you'll need to figure out how on your own. You do not need to turn in an image file of the histogram---just write code that generates a histogram. [2pts] For an extra point, give the histogram a title and x-axis label of your choosing that are different from the defaults. [1pt]
+\end{enumerate}
+
+\section{Binomial Distribution}
+
+You should be familiar with the Binomial distribution from a previous stats class. A $\Binom(n,p)$ random variable can be generated by obtaining a coin that comes up heads with probability $p$, flipping it $n$ times, and counting the number of heads.
+
+\begin{enumerate}[(a)]
+	\item Generate two vectors each of length $10,000$, named \verb|b1| and \verb|b2|,\footnote{Yes, you can include numbers in a variable name, as long as the very first character is a letter.} from $\Binom(100,p_1)$ and $\Binom(100,p_2)$ distributions. Choose $p_1$ and $p_2$ so that the distribution of \verb|b1| is symmetric, and the distribution of \verb|b2| is asymmetric. Write code that generates histograms of each vector (\verb|b1|'s histogram should clearly be symmetric, and \verb|b2|'s should clearly be asymmetric). [4pts]
+	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with mean 50 and standard deviation 5. Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b1|. [3pts]
+	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with the same mean and standard deviation as the distribution you used to generate \verb|b2| (you will again need to rely on your knowledge from a previous stats class). Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b1|. [3pts]
 \end{enumerate}
 
 \end{document}
