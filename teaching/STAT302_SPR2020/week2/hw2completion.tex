@@ -1,0 +1,80 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 1 Graded}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 1 Graded'' by \textbf{Monday, April 6 at 11:59pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below. Your code should not produce errors. Remember that if you are \textit{randomly} generating data, the samples will change every time the code is run, which makes it very important that you use variables.
+
+\section{Funky Funktions}
+
+\begin{enumerate}[(a)]
+	\item Write a function named \verb|quote| that takes in a character string, and outputs you saying the character string. For example, for my \verb|quote| function, \verb|quote(`turn this in before class Wednesday!')| will output \verb|``Sheridan says: turn this in before class Wednesday!''|. Hint: Google the \verb|paste| function. Test the function with a character string input of your choice.
+	\item Now write a function \verb|funkyQuote| that takes in a character string and a logical. If the logical is \verb|FALSE| then the output should be the same as \verb|quote|, but if the logical is \verb|TRUE| the output should be you saying ``Groovy!'' For me, \verb|funkyQuote(`sup', FALSE)| outputs \verb|``Sheridan says: sup''| but \verb|funkyQuote(`sup', TRUE)| outputs \verb|``Sheridan says: Groovy!''| Show that your function works by testing different inputs.
+	\item Now write a function \verb|funkyQuoteSmart| that has the same outputs as \verb|funkyQuote| when the first argument is a character, but if the first argument isn't a character type, it just outputs \verb|``Error! Input must be a character string.''| Show that your function works by inputting a character string, and by inputting a non-character.
+	\item Write your own sample standard deviation function, called \verb|mySD|, that takes in a vector and outputs the sample standard deviation. Use a \verb|for| loop. Demonstrate that it is equivalent to \verb|sd| by generating a vector of normal random samples and showing that both functions return the same thing when that vector is input.
+\end{enumerate}
+
+\end{document}
