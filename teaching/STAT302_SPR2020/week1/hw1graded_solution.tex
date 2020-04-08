@@ -1,0 +1,129 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+%\newcommand{\ans}[1]{\textcolor{red}{\em Solution: #1}}
+\newcommand{\ans}{\\\textcolor{red}{Solution: }}
+
+\title{Homework 1 Graded Solution}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 1 Graded'' by \textbf{Monday, April 6 at 11:59pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below. Your code should not produce errors; if it does so, we will be lenient in grading this first assignment, but not in the future.
+
+\section{R Basics}
+
+\begin{enumerate}[(a)]
+	\item Write a line of code that generates a vector of length 47 and does not contain the number $1$. [1pt] \ans anything that solves this works. Try to notice if multiple students appear to have submitted the same code conspicuously (e.g. \verb|87:133|).
+	\item Write a line of code that assigns a vector of length 47 to a variable. [1pt] \ans{again, anything that appears to not have been copied.}
+	\item Write a line of code that generates a vector of length 47 with a mean of $0$ and assigns it to a variable. Write another line of code that demonstrates that its mean really is $0$. [2pts] \ans First line or two is the assignment. I'm expecting, e.g., \verb|-33:33| but generating a vector and subtracting its mean works too (\verb|x <- rnorm(47)| then \verb|x <- x - mean(x)|). Last line should just be \verb|mean(vectorName)|.
+	\item Using no more than 5 lines of code, generate a vector of length 47 named ``standardized" with a sample standard deviation of $1$. It might be helpful to figure out what happens to the standard deviation of a mean-zero vector when it is multiplied by a constant. [3pts] \ans it will be hard to do this without generating a vector \verb|x| that is mean-zero and then doing something like \verb|standardized <- x/sd(x)|. For example, \verb|x <- rnorm(47)| then \verb|x <- x - mean(x)| and finally \verb|standardized <- x/sd(x)|. They don't have to show that the sd is one with \verb|sd(x)| but obviously good if they did. They don't get credit  For those who are curious, here's a proof of the property I'm getting at in the hint:
+	\begin{align*}
+	\text{sd}(X) &= \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2} \\
+	&= \sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i)^2}~\text{(assume mean-zero)} \\
+	\text{sd}(aX) &= \sqrt{\frac{1}{n-1}\sum_{i=1}^n (aX_i)^2} \\
+	\text{sd}(aX) &= \sqrt{\frac{1}{n-1}\sum_{i=1}^n a^2(X_i)^2} \\
+	\text{sd}(aX) &= \sqrt{\frac{1}{n-1}a^2\sum_{i=1}^n (X_i)^2} \\
+	\text{sd}(aX) &= a\sqrt{\frac{1}{n-1}\sum_{i=1}^n (X_i)^2} \\
+	&=a \cdot \text{sd}(X)
+	\end{align*}
+	\item Write code that computes the sum of all the multiples of $3$ between 100 and 200. [3pts] \ans just like the optional homework problem. \verb|(100:200)[which((100:200) %% 3 == 0)]| works. My example of this type of problem was kind of bad so be a little more generous with partial credit on just this one (2pts if close, 1pt even if it's wrong and a bit messy).
+\end{enumerate}
+
+\section{Data Types}
+
+We've seen a few data types in class so far, including numerics, integers, logicals, and vectors. You'll learn about a few more on your own for this problem.
+
+The class of functions \verb|is.[data type]| return \verb|TRUE| if their argument is of type \verb|[data type]| and \verb|FALSE| otherwise. For instance, \verb|is.numeric(x)| returns \verb|TRUE| if \verb|x| is numeric and \verb|FALSE| otherwise.
+
+\begin{enumerate}[(a)]
+\item Assign the variable \verb|notLogical| a value such that \verb|is.logical(notLogical)| returns \verb|FALSE|. [1pt] \ans keep an eye out for copying. \verb|notLogical <- 'hello'| or \verb|notLogical <- 4| etc...
+\item Write a single line of code using \verb|is.logical| and \verb|notLogical| (and some other stuff) that returns \verb|TRUE|. [1pt] \ans \verb|!is.logical(notLogical)|.
+\item Write two lines of code that demonstrate that \verb|is.numeric| and \verb|is.integer| are not the same function. [2pts] \ans something to the effect of \verb|is.numeric(4.7)| and \verb|is.integer(4.7)|. Again, eyes open for copying.
+\item One data type we did not talk about is the character type. Characters (or chars) begin and end with \verb|"| or \verb|'|. For example, \verb|"Hello, world!"| and \verb|'foo! bar!'| are both chars. The opening and closing quotes must match---\verb|"incorrect'| is not a char. Assign your full name (as a character, including spaces) to the variable \verb|name|. Write a line of code that verifies that \verb|name| is a char type. [2pts] \ans \verb|name <- 'Sheridan Lloyd Grant'| and \verb|is.character(name)|. If anyone copies, let me know so I can give them a zero for the assignment AND make fun of them ;).
+\item Write a line of code that returns your name in all uppercase. You will need to find a function that does this, and apply it to \verb|name|. [2pts] \ans \verb|toupper(name)|.
+\end{enumerate}
+
+\section{Normal Distribution Functions}
+
+For many distributions, R includes 4 functions that do useful things. For the Normal distribution, they are \verb|rnorm|, \verb|pnorm|, \verb|dnorm|, and \verb|qnorm|. You should read about these functions on your own so you understand what they do.
+
+\begin{enumerate}[(a)]
+	\item Using \verb|pnorm| (which we saw in class), demonstrate that there is approximately a 95\% chance that a Normal random variable lies between $-1.96$ and $1.96$. [2pts] \ans \verb|pnorm(1.96) - pnorm(-1.96)|. Can be two separate lines.
+	\item Using \verb|qnorm|, demonstrate that there is exactly a 95\% chance that a Normal random variable lies between approximately $-1.96$ and approximately $1.96$. [2pts] \ans \verb|qnorm(0.975)| and \verb|qnorm(0.025)|.
+	\item Using \verb|rnorm|, generate a vector of $10,000$ samples from the standard Normal distribution. What percentage of them are between $-1.96$ and $1.96$? [2pts] \ans this can be broken up into more lines if needed, it's okay if they use sum then divide, etc. \verb|x <- rnorm(10^4)| then \verb|mean(x > -1.96 & x < 1.96)|.
+	\item Using \verb|dnorm| and the vector from the previous problem, show that the value in the vector with the highest density (under the standard Normal distribution) is the one that is closest to zero. [3pts] \ans first, compute density at each sample with \verb|dens <- dnorm(x)|. Then, find index of maximum density with \verb|maxInd <- which(dens == max(dens))|. Then, demonstrate that \verb|x[maxInd]| is closest to zero. This is tricky, may take them a few lines. For example, \verb|which(x == min(abs(x))| should output the same integer as \verb|maxInd|. Use your judgment for how clear their demonstration. Do not award full credit for anything non-rigorous, using graphs, waving hands, etc.
+	\item Generate a histogram of the vector from part (c). You can do this very easily with R, but you'll need to figure out how on your own. You do not need to turn in an image file of the histogram---just write code that generates a histogram. [2pts] For an extra point, give the histogram a title and x-axis label of your choosing that are different from the defaults. [1pt] \ans \verb|hist(x, main = 'Sheridan Made a Hist', xlab = 'normal sample')|.
+\end{enumerate}
+
+\section{Binomial Distribution}
+
+You should be familiar with the Binomial distribution from a previous stats class. A $\Binom(n,p)$ random variable can be generated by obtaining a coin that comes up heads with probability $p$, flipping it $n$ times, and counting the number of heads.
+
+\begin{enumerate}[(a)]
+	\item Generate two vectors each of length $10,000$, named \verb|b1| and \verb|b2|,\footnote{Yes, you can include numbers in a variable name, as long as the very first character is a letter.} from $\Binom(100,p_1)$ and $\Binom(100,p_2)$ distributions. Choose $p_1$ and $p_2$ so that the distribution of \verb|b1| is symmetric, and the distribution of \verb|b2| is asymmetric. (\verb|b1| need not be \textit{exactly} symmetric, but it should be close. You can easily Google how to make a symmetric binomial distribution, also.) Write code that generates histograms of each vector (\verb|b1|'s histogram should clearly be symmetric, and \verb|b2|'s should clearly be asymmetric). [4pts] \ans \verb|p1 <- 0.5| and \verb|p2 <- 0.9|. Then \verb|b1 <- rbinom(10^4,100,p1)| and \verb|b1 <- rbinom(10^4,100,p2)|. Finally, \verb|hist(b1)| and \verb|hist(b2)|.
+	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with mean 50 and standard deviation 5. Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b1|. [3pts] \ans \verb|normSamp <- rnorm(10^4, 50, 5)| and \verb|hist(normSamp)|. The comment should note that the two histograms are very similar in location \textbf{and} width \textbf{and} shape, and perhaps they'll note that the distributions that generated the samples have the same mean and standard deviation. Only full points for a comment that is precise---correct code and ``they look the same'' as a comment should only earn 2pts.
+	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with the same mean and standard deviation as the distribution you used to generate \verb|b2| (you will again need to rely on your knowledge from a previous stats class). Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b2|. [3pts] \ans mean is $100 p_2$ and standard deviation is $\sqrt{100p_2(1-p_2)}$. The comment should note that one is skewed and the other is not.
+\end{enumerate}
+
+\end{document}
