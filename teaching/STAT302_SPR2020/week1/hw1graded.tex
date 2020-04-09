@@ -56,9 +56,9 @@
 \newcommand{\Pscript}{\mathcal{P}}
 \newcommand{\Mscript}{\mathcal{M}}
 
-\title{Homework 1 Graded}
+\title{Homework 2 Graded}
 \author{Sheridan Grant}
-\date{Must be uploaded to Canvas under ``Homework 1 Graded'' by \textbf{Monday, April 6 at 11:59pm}}
+\date{Must be uploaded to Canvas under ``Homework 2 Graded'' by \textbf{Monday, April 13 at 11:59pm}}
 
 \begin{document}\sloppy
 
@@ -66,52 +66,60 @@
 
 \section*{Instructions}
 
-Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below. Your code should not produce errors; if it does so, we will be lenient in grading this first assignment, but not in the future.
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below.
 
-\section{R Basics}
+Your code should not produce errors; \textbf{you will not receive credit for a part of a problem if your code produces an error for that part.} To check that your code doesn't produce errors before you submit, I recommend clicking the broom under the Environment tab to ``clear objects from the workspace,'' running your entire homework file all at once, and checking over the output for errors or other unexpected behavior.
+
+Finally, we will be giving [5pts] for code style and cleanliness. For any function you write, include a comment on the line above the function saying what the function expects as input and what it outputs. If you do this and the rest of your code is reasonably neat (blank line between parts of questions!!!) then this is an easy [5pts].
+
+\section{$t$-testing}
+
+For this question, you'll write a function that performs a 1-sample $t$-test.
 
 \begin{enumerate}[(a)]
-	\item Write a line of code that generates a vector of length 47 and does not contain the number $1$. [1pt]
-	\item Write a line of code that assigns a vector of length 47 to a variable. [1pt]
-	\item Write a line of code that generates a vector of length 47 with a mean of $0$ and assigns it to a variable. Write another line of code that demonstrates that its mean really is $0$. [2pts]
-	\item Using no more than 5 lines of code, generate a vector of length 47 named "standardized" with a sample standard deviation of $1$. It might be helpful to figure out what happens to the standard deviation of a mean-zero vector when it is multiplied by a constant. [3pts]
-	\item Write code that computes the sum of all the multiples of $3$ between 100 and 200. [3pts]
+	\item Write a function \verb|tScore| that takes in two arguments---a vector of samples and the mean under the null hypothesis---and returns a $t$-score, i.e. the difference between the sample mean and null mean, scaled by the estimated standard deviation of the sample mean. [3pts]
+	\item Now write a function \verb|tTest1| that takes in three arguments---a vector of samples, the mean under the null hypothesis, and a character string that will either be \verb|``greater''|, \verb|``less''|, or \verb|``equal''|---and returns the $p$-value for the 1-sample $t$-test. The character string represents the \textit{null} hypothesis, i.e. \verb|``greater''| means the null hypothesis is that the true mean is greater than or equal to the null mean ($H_0: \mu > \mu_0$). You will need to use control flow (``if-else'' statements) to make sure the function does the correct computation for each of the three character strings. [3pts]
+	\item Ideally, your $t$-test function would provide the user with more information than just the $p$-value. Write a function \verb|tTest1better| that is similar to \verb|tTest1| except for the following:
+	\begin{itemize}
+		\item Takes in an extra argument, \verb|alpha|, that is the ``size'' of the test: if the $p$-value is below this level, we reject the null hypothesis.
+		\item Outputs a \textit{list} (not a vector) with 3 named elements: \verb|pVal|, the $p$-value; \verb|tScore|, the $t$-score; and \verb|reject|, a logical that tells the user whether or not the test rejects the null hypothesis at level \verb|alpha|. Look up lists in R and how to name their elements; the main advantage of lists is that they can hold different data types, unlike vectors or matrices.
+		\item Prints a message to the user that says ``The null hypothesis is [rejected/not rejected] at level [alpha].'' Your code should ensure that the correct phrase ``rejected'' or ``not rejected'' and the correct \verb|alpha|-level are in the print statement. Google the \verb|paste| function if you've forgotten about it.
+	\end{itemize}
+	[4pts]
 \end{enumerate}
 
-\section{Data Types}
+\section{Nested Loops}
 
-We've seen a few data types in class so far, including numerics, integers, logicals, and vectors. You'll learn about a few more on your own for this problem.
-
-The class of functions \verb|is.[data type]| return \verb|TRUE| if their argument is of type \verb|[data type]| and \verb|FALSE| otherwise. For instance, \verb|is.numeric(x)| returns \verb|TRUE| if \verb|x| is numeric and \verb|FALSE| otherwise.
+One reason loops are powerful is that they can be \textit{nested}---one loop can go inside another.
 
 \begin{enumerate}[(a)]
-\item Assign the variable \verb|notLogical| a value such that \verb|is.logical(notLogical)| returns \verb|FALSE|. [1pt]
-\item Write a single line of code using \verb|is.logical| and \verb|notLogical| (and some other stuff) that returns \verb|TRUE|. [1pt]
-\item Write two lines of code that demonstrate that \verb|is.numeric| and \verb|is.integer| are not the same function. [2pts]
-\item One data type we did not talk about is the character type. Characters (or chars) begin and end with \verb|"| or \verb|'|. For example, \verb|"Hello, world!"| and \verb|'foo! bar!'| are both chars. The opening and closing quotes must match---\verb|"incorrect'| is not a char. Assign your full name (as a character, including spaces) to the variable \verb|name|. Write a line of code that verifies that \verb|name| is a char type. [2pts]
-\item Write a line of code that returns your name in all uppercase. You will need to find a function that does this, and apply it to \verb|name|. [2pts]
+	\item Write a function \verb|matrixSum| that computes the sum of all elements in a matrix. You may assume the input is a matrix with numeric elements. You may \textit{not} use the \verb|sum| or \verb|mean| functions---that is, you must use loops. I cannot stop you from checking that your function works by using \verb|sum|, of course! [3pts]
+	\item Write a function \verb|triangleSum| that takes in three arguments: \verb|X|, a matrix; \verb|upper|, a logical; and \verb|diagonal|, a logical. This function should compute the sum of all the elements either above the diagonal of \verb|X| (if \verb|upper == TRUE|) or below the diagonal of \verb|X| (if \verb|upper == FALSE|), either including the diagonal (if \verb|diagonal == TRUE|) or not (if \verb|diagonal == FALSE|). Hints:
+	\begin{itemize}
+		\item If you have an ``outer'' loop and an ``inner'' loop, you can use the looping variable from the outer loop to define the vector that the inner loop loops through.
+		\item You need \textit{different} looping variables for the outer and inner loops. If you use \verb|i| for both, your function won't work (make sure you understand why).
+		\item Matrices need not be square, so for full credit make sure your function works for any-size matrices. You may write in the comment above the function that it is only intended for square matrices for [-2pts].
+		\item This function sounds complicated, but it doesn't have to be if you break down the computation and your control flow cleverly.
+	\end{itemize}
+	[7pts]
 \end{enumerate}
 
-\section{Normal Distribution Functions}
-
-For many distributions, R includes 4 functions that do useful things. For the Normal distribution, they are \verb|rnorm|, \verb|pnorm|, \verb|dnorm|, and \verb|qnorm|. You should read about these functions on your own so you understand what they do.
+\section{Matrix Algebra}
 
 \begin{enumerate}[(a)]
-	\item Using \verb|pnorm| (which we saw in class), demonstrate that there is approximately a 95\% chance that a Normal random variable lies between $-1.96$ and $1.96$. [2pts]
-	\item Using \verb|qnorm|, demonstrate that there is exactly a 95\% chance that a Normal random variable lies between approximately $-1.96$ and approximately $1.96$. [2pts]
-	\item Using \verb|rnorm|, generate a vector of $10,000$ samples from the standard Normal distribution. What percentage of them are between $-1.96$ and $1.96$? [2pts]
-	\item Using \verb|dnorm| and the vector from the previous problem, show that the value in the vector with the highest density (under the standard Normal distribution) is the one that is closest to zero. [3pts]
-	\item Generate a histogram of the vector from part (c). You can do this very easily with R, but you'll need to figure out how on your own. You do not need to turn in an image file of the histogram---just write code that generates a histogram. [2pts] For an extra point, give the histogram a title and x-axis label of your choosing that are different from the defaults. [1pt]
-\end{enumerate}
-
-\section{Binomial Distribution}
-
-You should be familiar with the Binomial distribution from a previous stats class. A $\Binom(n,p)$ random variable can be generated by obtaining a coin that comes up heads with probability $p$, flipping it $n$ times, and counting the number of heads.
-
-\begin{enumerate}[(a)]
-	\item Generate two vectors each of length $10,000$, named \verb|b1| and \verb|b2|,\footnote{Yes, you can include numbers in a variable name, as long as the very first character is a letter.} from $\Binom(100,p_1)$ and $\Binom(100,p_2)$ distributions. Choose $p_1$ and $p_2$ so that the distribution of \verb|b1| is symmetric, and the distribution of \verb|b2| is asymmetric. (\verb|b1| need not be \textit{exactly} symmetric, but it should be close. You can easily Google how to make a symmetric binomial distribution, also.) Write code that generates histograms of each vector (\verb|b1|'s histogram should clearly be symmetric, and \verb|b2|'s should clearly be asymmetric). [4pts]
-	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with mean 50 and standard deviation 5. Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b1|. [3pts]
-	\item Using \verb|rnorm|, generate $10,000$ samples from a Normal distribution with the same mean and standard deviation as the distribution you used to generate \verb|b2| (you will again need to rely on your knowledge from a previous stats class). Write code that generates a histogram of this vector. Write a comment that compares this histogram to the histogram of \verb|b2|. [3pts]
+	\item A quadratic form is a polynomial of degree 2, i.e. there are only powers of zero (constants), one, and two. For example, $2x_1x_2x_3^2 + x_2^2x_3 + x_1x_3 + 4$ is a quadratic form in 3 variables. Every quadratic form in $n$ variables can be written $[1,x_1,\ldots,x_n]^T A [1,x_1,\ldots,x_n]$ with $A$ a $(n+1) \times (n+1)$ square symmetric matrix.
+	
+	Write a function, \verb|quadForm|, that takes in a vector \verb|x| and a matrix \verb|A| and outputs the quadratic form $x^T A x$. You will need to look up how to do matrix multiplication in R! [2pts]
+	\item Suppose I tell you that $x_1 = 4$ and $x_2 = 7$, so that $x = [1,4,7]$. Find two different matrices, \verb|A1| and \verb|A2| that yield a quadratic form that evaluates to 147. Write two lines of code defining variables \verb|A1| and \verb|A2| and two more lines of code using \verb|quadForm| that show that your two matrices both work. [3pts]
+	\item With matrix computations in R, you can solve linear algebra problems even if you've never taken a linear algebra class. A linear system of equations, is a set of equations that are linear in the variables $x_1,\ldots,x_n$ (you saw the $n=2$ case early in high school, most likely). Consider the following linear system of equations:
+	\begin{align*}
+	x_1 + x_2 + x_3 &= 1 \\
+	x_1 + 2x_2 + x_3 &= 2 \\
+	x_1 + x_2 + 3x_3 &= 3
+	\end{align*}
+	With $x = [x_1,x_2,x_3]$, write this system of equations in matrix form: $Ax = b$ (you do not have to show your work) and define, in R, a matrix \verb|A| and vector \verb|b| corresponding to this system of equations.
+	
+	The solution to the system is then $x = A^{-1}b$, (assuming $A^{-1}$ exists, which it does in this problem). Figure out how to compute a matrix inverse in R and compute the solution to the system of equations. Check that the solution you get actually works (you can also check by hand if you want). [5pts]
 \end{enumerate}
 
 \end{document}
