@@ -94,7 +94,16 @@ One reason loops are powerful is that they can be \textit{nested}---one loop can
 
 \begin{enumerate}[(a)]
 	\item Write a function \verb|matrixSum| that computes the sum of all elements in a matrix. You may assume the input is a matrix with numeric elements. You may \textit{not} use the \verb|sum| or \verb|mean| functions---that is, you must use loops. I cannot stop you from checking that your function works by using \verb|sum|, of course! [3pts]
-	\item Write a function \verb|triangleSum| that takes in three arguments: \verb|X|, a matrix; \verb|upper|, a logical; and \verb|diagonal|, a logical. This function should compute the sum of all the elements either above the diagonal of \verb|X| (if \verb|upper == TRUE|) or below the diagonal of \verb|X| (if \verb|upper == FALSE|), either including the diagonal (if \verb|diagonal == TRUE|) or not (if \verb|diagonal == FALSE|). Hints:
+	\item Write a function \verb|triangleSum| that takes in three arguments: \verb|X|, a matrix; \verb|upper|, a logical; and \verb|diagonal|, a logical. This function should compute the sum of all the elements either above the diagonal of \verb|X| (if \verb|upper == TRUE|) or below the diagonal of \verb|X| (if \verb|upper == FALSE|), either including the diagonal (if \verb|diagonal == TRUE|) or not (if \verb|diagonal == FALSE|). The diagonal of a matrix is all the elements with the same row/column index. Consider the following matrix:
+	\[A =
+	\begin{bmatrix}
+	1 & 2 & 3 \\
+	4 & 5 & 6 \\
+	7 & 8 & 9 \\
+	10 & 11 & 12
+	\end{bmatrix}\]
+	Its diagonal is $[1,5,9]$, \verb|triangleSum(A, upper = T, diagonal = F)| should output \verb|11|, and \verb|triangleSum(A, upper = F, diagonal = T)| should output \verb|62|.
+	Hints:
 	\begin{itemize}
 		\item If you have an ``outer'' loop and an ``inner'' loop, you can use the looping variable from the outer loop to define the vector that the inner loop loops through.
 		\item You need \textit{different} looping variables for the outer and inner loops. If you use \verb|i| for both, your function won't work (make sure you understand why).
