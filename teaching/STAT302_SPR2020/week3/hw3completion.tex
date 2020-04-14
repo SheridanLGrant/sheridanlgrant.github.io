@@ -1,0 +1,82 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 3 Completion}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 3 Graded'' by \textbf{Wednesday, April 15 at 3:30pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below.
+
+\section{Data Wranglin'}
+
+For this question, you'll answer some simple quick questions about the COVID-19 data we saw in class Monday. The \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020/week3/lecture5_grant.R}{code from Monday's class} could be helpful to you.
+
+\begin{enumerate}[(a)]
+	\item Download the .csv data found \href{https://data.world/covid-19-data-resource-hub/covid-19-case-counts/workspace/file?filename=COVID-19+Cases.csv}{here} and save the file to a sensible location (if you don't already have a folder for this class, now is a good time to make one!!!). From that webpage, click around and find the proof that the \verb|Cases| variable counts \textit{cumulative} COVID-19 cases, and paste the sentence that confirms this in a comment in your code. It's important to understand where your data came from!
+	\item Set your working directory to the folder with the data in it. If you don't know how to set your working directory, click \href{https://lmgtfy.com/?q=how+to+set+working+directory+in+r}{here}. Don't write any code or comments for this part of the problem.
+	\item Write a line of code that reads the data into a variable called \verb|covid|. Write another line of code that renames the first variable in the data frame to something sensible.
+	\item Write a line of code that finds the latest count of COVID-19 \textbf{confirmed cases} in the Hubei province of China. You may write some code before this line to help you build up to the solution.
+\end{enumerate}
+
+\end{document}
