@@ -5,19 +5,17 @@
 
 
 # 1
+
+## a
+## Point in time snapshot of to-date totals (i.e., Mar 22 is inclusive of all prior dates)
+
+## b
+
+## c
 covid <- read.csv("COVID-19 Cases.csv")
-head(covid)
-dim(covid)
-levels(covid$Province_State)
-head(covid[covid$Province_State == 'Washington',])
 colnames(covid)
 colnames(covid)[1] <- 'Case_Type'
 colnames(covid)
-covid[covid$Province_State == 'Washington' & covid$Case_Type == 'Confirmed', 'Cases']
-head(covid[covid$Province_State == 'Washington' & covid$Case_Type == 'Confirmed' & covid$Date == '3/15/2020' & covid$Admin2 == 'King',])
-covid[covid$Province_State == 'Washington' & covid$Case_Type == 'Confirmed' & covid$Admin2 == 'King', c('Cases', 'Date')]
-kingCases <- covid[covid$Province_State == 'Washington' & covid$Case_Type == 'Confirmed' & covid$Admin2 == 'King', 'Cases']
-sort(kingCases)
-plot(sort(kingCases))
 
-
+## d
+max(covid[covid$Province_State == 'Hubei' & covid$Case_Type == 'Confirmed', 'Cases'])
