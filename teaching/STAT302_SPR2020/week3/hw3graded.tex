@@ -1,0 +1,109 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 3 Graded}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 3 Graded'' by \textbf{Monday, April 20 at 11:59pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your code using the style shown on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below.
+
+Your code should not produce errors; \textbf{you will not receive credit for a part of a problem if your code produces an error for that part.} To check that your code doesn't produce errors before you submit, I recommend clicking the broom under the Environment tab to ``clear objects from the workspace,'' running your entire homework file all at once, and checking over the output for errors or other unexpected behavior.
+
+Finally, we will be giving [5pts] for code style and cleanliness. For any function you write, include a comment on the line above the function saying what the function expects as input and what it outputs. If you do this and the rest of your code is reasonably neat (blank line between parts of questions!!!) then this is an easy [5pts].
+
+\section{Data Typez}
+
+\begin{enumerate}[(a)]
+	\item Create a variable \verb|bobby| that is a \textbf{named} list, such that \verb|data.frame(bobby)| produces an error (that is, the list cannot naturally be turned into a data frame). It is okay for your code to produce an error in this part of the problem. [2pts]
+	\item Create a $3 \times 2$ matrix called \verb|antoni| with rownames and colnames that are not \verb|NULL|. [2pts]
+	\item Create a 4-dimensional array called \verb|karamo| with 210 elements. [2pts]
+	\item Write a line of code that applies the \verb|apply| function to \verb|karamo| returns a 2-dimensional array. Assign the result to a variable \verb|jonathan|, and write a short line of code that demonstrates that \verb|jonathan| is 2-dimensional. [2pts]
+	\item Define a variable \verb|tan| such that \verb|is.atomic(tan)| returns \verb|FALSE|. \verb|tan| is already a function in R, but you don't need it on this assignment so just once you can use it as a variable name. [2pts]
+	
+\end{enumerate}
+
+\section{SKEWness of the Quantile Distribution}
+
+In class, we saw that the distribution of means of standard normal random variables is symmetrically distributed, but the distribution of maximums of standard normal random variables is right-skewed. In this problem, we will investigate this phenomenon more fully.
+
+\begin{enumerate}[(a)]
+	\item Generate $10^5$ random samples from the $\text{Uniform}(0,1)$ distribution, and arrange them in a $100 \times 1000$ matrix. Consider the 1000 columns to each be repetitions of an experiment in which 100 uniform random samples are generated. [1pt]
+	\item Make an appropriately-labeled histogram of the \textbf{median} outcomes across the experiments, and another of the 90th quantile of the observations, again across experiments. Each histogram should represent 1000 data points. [3pts]
+	\item The \textit{empirical skewness} of a set of random variables $\{X_1,\ldots,X_n\}$ is $\frac{1}{ns^3}\sum_{i=1}^n (X_i - \bar{X})^3$, where $s$ is the sample standard deviation. Write a function \verb|skew| that computes the empirical skewness of a vector. Demonstrate that it works using the vectors \verb|1:100| and \verb|c(4,7,4)|. [2pts]
+	\item For $q \in \{0,0.01,0.02,\ldots,0.99,1\}$, compute the empirical skewness of the $100q$th quantile for each experiment and assign these 101 values to a variable \verb|weks|. Write a code comment---probably using multiple lines---that explains the relationship between $q$ and the empirical skewness.
+\end{enumerate}
+
+\section{COVID-19 Data Wranglin'}
+
+For this question, you'll analyze the \href{https://data.world/covid-19-data-resource-hub/covid-19-case-counts/workspace/project-summary?agentid=covid-19-data-resource-hub&datasetid=covid-19-case-counts}{COVID-19 data} from Johns Hopkins. You can install \verb|dplyr| and many other useful packages with \verb|install.packages(`tidyverse')|. If you try to install and get an error that says a different package, like Rtools, is missing, then try to install the missing package and then try tidyverse again. Installing packages is usually easy, but sometimes a hassle depending on your machine. Come to Thursday or Friday office hours if you have a problem you can't solve.
+
+\begin{enumerate}[(a)]
+	\item Plot King County's cumulative confirmed case count over time with a line plot, from the first day in the database to the last day in the database. Give the plot a meaningful title and axis labels. [3pts]
+	\item Add to the plot, in a different color, the cumulative count of COVID-19 deaths in WA over the same period. Add a legend to the plot that explains which line is which. [2pts]
+	\item How many COVID-19 cumulative confirmed cases were there in each country in the database on April 1, 2020 (or on the most recent date before April 1, if there's no data for April 1)? Your code should print a data frame or ``tibble'' with 2 columns, one containing each country exactly once, and the other with that country's confirmed case count. This is not easy---if you make a simplifying assumption that makes your result wrong, write an explanatory comment and the grader will give partial credit. [5pts]
+\end{enumerate}
+
+
+
+\end{document}
