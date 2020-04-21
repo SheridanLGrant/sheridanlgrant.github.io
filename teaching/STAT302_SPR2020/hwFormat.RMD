@@ -1,0 +1,35 @@
+---
+title: "STAT 302 SPR2020 Homework X [Completion/Graded]"
+author: "Your Name"
+date: "[Due Date]"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Required libraries:
+```{r, warning=F, message=F}
+library(dplyr)
+library(randomForest)
+```
+
+## Question 1
+
+```{r}
+# Code for setting up the problem, i.e. reading the data into a data.frame
+```
+
+### Part (a)
+
+I broke this down into 4 steps: first, blah; second, blah-dy-blah; third---and this is really clever---bleh; to finish, I just show that blergh.
+```{r}
+# Code for this part
+```
+
+### Part (b)
+
+## Question 2
+
+### Part (a)
+
+### Part (b)

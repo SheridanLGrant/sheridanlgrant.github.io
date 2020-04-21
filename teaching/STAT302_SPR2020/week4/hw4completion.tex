@@ -1,0 +1,83 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 4 Completion}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 4 Completion'' by \textbf{Wednesday, April 22 at 3:30pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your .RMD file using the template on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. \textbf{Submit the .RMD file, the .html output, and any other files or folders needed as a single .zip file.} Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below.
+
+Make sure that your file knits before you submit. Make sure that any files needed to knit your .RMD are also in the .zip you submit. \textbf{For this assignment, this means including an image file and .R file in addition to the .RMD and .html.}
+
+\section{Gettin' Down with R Markdown}
+
+\begin{enumerate}[(a)]
+	\item Write a code chunk that produces printed results, so that these results are visible in the output, but the code itself is not visible in the output.
+	\item Write a code chunk that is visible in the output, but that is not evaluated.
+	\item Write a code chunk that is visible in the output that \textbf{is} evaluated but whose results are not visible in the output.
+	\item Create a file primes.R that defines the \verb|isPrime| function and does not print anything (you may use my primes.R file from the website, but ensure it doesn't print anything). Write a code chunk that sources this file and then uses \verb|isPrime| to find the smallest prime larger than 20,000,000,000 (hint: use a \verb|while| loop).
+	\item Use \verb|Rscript| to run the primes.R script in the terminal (Mac) or command prompt (Windows). Take a screen capture of your successful use of \verb|Rscript primes.R|. Find a way to include your screen capture (a .PNG or .JPG file) in the .html output.
+\end{enumerate}
+
+\end{document}
