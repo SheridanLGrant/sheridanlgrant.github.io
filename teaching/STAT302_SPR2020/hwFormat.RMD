@@ -28,6 +28,8 @@ I broke this down into 4 steps: first, blah; second, blah-dy-blah; third---and t
 
 ### Part (b)
 
+For this part, I'm doing math. I can use the LaTeX typesetting language to do this: $\sum_{i=1}^n x_i = n\bar{x}$.
+
 ## Question 2
 
 ### Part (a)

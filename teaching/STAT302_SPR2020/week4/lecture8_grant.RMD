@@ -1,0 +1,45 @@
+---
+title: "STAT 302 SPR2020 Lecture 8"
+author: "Sheridan Grant"
+date: "April 22, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## SAT Data
+
+Today, we'll use the Excel trick to read the data, but in the future, we'll learn how to rip the data straight off the web.
+```{r}
+sat <- read.csv('sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+```
+
+## Univariate Linear Regression
+
+Regress First Year College GPA on SATSum
+```{r}
+satMod1 <- lm(sat$FYGPA ~ sat$SATSum)
+```
+
+### Utility Functions
+```{r}
+hist(residuals(satMod1))
+mean(residuals(satMod1))
+sum(residuals(satMod1)^2)
+
+summary(satMod1)
+```
+
+## Multivariate Linear Regression
+```{r}
+satMod2 <- lm(FYGPA ~ SATM + SATV + HSGPA, data = sat)
+sum(residuals(satMod2)^2)
+```
+
+## Do Linear Regression Yourself
+```{r}
+f <- function(b) sum((sat$FYGPA - (b[1] + b[2]*sat$SATSum))^2)
+optim(c(0,0), f)
+```
