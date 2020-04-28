@@ -1,0 +1,118 @@
+---
+title: "STAT 302 SPR2020 Lecture 9"
+author: "Sheridan Grant"
+date: "April 27, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+```{r}
+sat <- read.csv('sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+n <- dim(sat)[1]
+```
+
+## Diagnosing Linear Models
+
+Regress First Year College GPA on SATSum
+```{r}
+satMod1 <- lm(sat$FYGPA ~ sat$SATSum)
+plot(satMod1)
+plot(sat$SATSum, resid(satMod1))
+```
+plot, by default, plots residuals against fitted values (predicted outcomes) because predicted outcomes are always 1-dimensional, while X may be high-dimensional. But if X is low-dimensional, it can make more sense to compare the residuals to each variable in X.
+
+### Misspecification
+```{r}
+x1 <- runif(1000)
+y1 <- x1^2 + rnorm(1000, 0, 0.1)
+plot(x1, y1)
+lmod1 <- lm(y1 ~ x1)
+abline(lmod1, col = 'red')
+plot(x1, resid(lmod1))
+plot(lmod1)
+```
+Estimated residuals clearly not independent of X, though *actual* residuals are independent standard normals! Indicates a problem with specification. Here, it's because the true model is quadratic in x1, not linear.
+
+### Dependent Residuals
+```{r}
+x2 <- runif(1000, -1, 1)
+eps2 <- sapply(x2, function(x) runif(1, x-1, x+1))
+y2 <- x2 + eps2
+lmod2 <- lm(y2 ~ x2)
+plot(x2, y2)
+abline(lmod2, col = 'red')
+abline(0, 1, col = 'blue')
+legend(-1, 2,
+       c('Estimated Regression Line',
+         'True Regression Line'),
+       fill = c('Red', 'Blue'))
+plot(lmod2)
+```
+Here, the errors eps2 are correlated with x2 by design. So the estimated regression line is twice as steep as the true regression line, even though there are no diagnostic problems. You can't always check your modeling assumptions with just plots and your data--you also have to use scientific reasoning.
+
+### Q-Q Plot
+
+Use replication to see how often the coefficient estimate is significant if the null hypothesis of no relationship is true. Inference about regression coefficients based on the t distribution is only valid if the residuals are approximately normally distributed.
+```{r}
+n5 <- 200
+x5 <- rnorm(n5)
+y5s <- replicate(1000, rnorm(n5))
+# Function returns T if x coefficient estimate is statistically significant at level alpha, F otherwise
+significant <- function(x, y, alpha = 0.05) {
+  mod <- lm(y ~ x)
+  summary(mod)$coefficients[2,4] < alpha
+}
+mean(apply(y5s, 2, function(y) significant(x5, y, 0.1)))
+y5sNonNormal <- replicate(1000, rbinom(n5, 1, 0.01) - 0.01)
+mean(apply(y5sNonNormal, 2, function(y) significant(x5, y, 0.1)))
+```
+
+### Scale-Location
+```{r}
+x3 <- rnorm(10^4)
+y3 <- x3 + rnorm(10^4)
+lmod3 <- lm(y3 ~ x3)
+plot(x3, resid(lmod3))
+plot(lmod3)
+```
+We expect large residuals to be more frequent where X is dense. This can be hard to see from just the residuals, so the scale-location plot rescales the residuals (in a complicated way) to make it easier to tell when there is heteroscedasticity. I personally do not like or use this diagnostic plot.
+
+### Leverage
+```{r}
+x4 <- c(x3[1:100], 0, -4)
+y4 <- c(y3[1:100], 8, 0)
+plot(x4, y4)
+abline(0, 1, col='red')
+abline(lm(y4 ~ x4), col = 'blue')
+plot(lm(y4 ~ x4))
+```
+Leverage of a data point is how much the slope of the line changes when you change the y-value of that data point; residual is how well the model fits the data point. You just don't want both to be large: if a point has high leverage but the model fits it reasonably well, no problem. If a point has a huge residual but no leverage, then that point is strange but it's not exerting much influence on your model.
+
+## Overfitting
+
+(We didn't get to this in lecture yet.)
+
+Suppose we want to do a better job fitting a model to the SAT data. How can we make those residuals smaller???
+```{r}
+fakeX <- matrix(rnorm(998*1000), 1000, 998)
+fakeData <- cbind(FYGPA = sat$FYGPA,
+                  satSum = sat$SATSum,
+                  data.frame(fakeX))
+lmodBad1 <- lm(FYGPA ~ ., data = fakeData)
+sum(resid(lmodBad1)^2)
+```
+We made up a bunch of numbers and got a great model! What's going on?
+```{r}
+summary(satMod1)
+lmodBad2 <- lm(FYGPA ~ ., data = fakeData[,1:500])
+summary(lmodBad2)
+```
+Adjusted R-squared decreases. But Adj. R-squared is weak sauce--what we really care about is how well our model would predict new outcomes. How can we tell?
+```{r}
+ttSplit <- sample(n)
+```

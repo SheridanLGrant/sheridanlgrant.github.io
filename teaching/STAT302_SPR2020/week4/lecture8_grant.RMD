@@ -41,5 +41,5 @@ sum(residuals(satMod2)^2)
 ## Do Linear Regression Yourself
 ```{r}
 f <- function(b) sum((sat$FYGPA - (b[1] + b[2]*sat$SATSum))^2)
-optim(c(0,0), f)
+opt1im(c(0,0), f)
 ```
