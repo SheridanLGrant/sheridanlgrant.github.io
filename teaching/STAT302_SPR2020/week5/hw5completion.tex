@@ -1,0 +1,84 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 5 Completion}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 5 Completion'' by \textbf{Wednesday, April 29 at 3:30pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your .RMD file using the template on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. \textbf{Submit the .RMD file, the .html output, and any other files or folders needed as a single .zip file.} Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code that does so. The grader will be running your code and verifying that it solves the problems presented below.
+
+Make sure that your file knits before you submit. Make sure that any files needed to knit your .RMD are also in the .zip you submit.
+
+\section{Linear Model Diagnostics}
+
+For each of the following parts of this question, provide a plot to support your \textit{brief} (1-2 sentence) analysis.
+
+\begin{enumerate}[(a)]
+	\item Find a built-in R data set that you like (other than \verb|faithful|) with two variables whose relationship is of interest, and fit a linear model based on two variables in this data set. Interpret the coefficient of interest, $\beta$.
+	\item Analyze the residuals, and assess whether they appear to be independent of the covariate/predictor variable.
+	\item Are the $t$ tests from the model summary trustworthy? Why or why not?
+	\item Are there outliers in the data set? If so, do they pose a concern to the validity of your model?
+\end{enumerate}
+
+\end{document}

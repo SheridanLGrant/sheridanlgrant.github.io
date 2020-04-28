@@ -6,6 +6,9 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
+Collaborated with: me, myself, and I
+
+Note: any code needed to solve a problem should be shown in the HTML output.
 
 Required libraries:
 ```{r, warning=F, message=F}
