@@ -1,0 +1,89 @@
+---
+title: "STAT 302 SPR2020 Lecture 9"
+author: "Sheridan Grant"
+date: "April 27, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+```{r}
+sat <- read.csv('sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+sat$sex <- sat$sex - 1  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+```
+
+## Nonlinear function with linear models
+
+### Polynomial transformations of covariates
+
+Misspecification example from last class
+```{r}
+x1 <- runif(1000)
+y1 <- x1^2 + rnorm(1000, 0, 0.1)
+plot(x1, y1)
+lmod1 <- lm(y1 ~ x1)
+abline(lmod1, col = 'red')
+plot(x1, resid(lmod1))
+plot(lmod1)
+
+lmod1quad <- lm(y1 ~ x1 + I(x1^2))
+lmod1quad
+plot(lmod1quad)
+```
+
+SAT Data:
+```{r}
+satBasic <- lm(FYGPA ~ SATSum, data = sat)
+satQuad <- lm(FYGPA ~ SATSum + I(SATSum^2), data = sat)
+summary(satQuad)
+plot(sat$SATSum, sat$FYGPA)
+lines(sat$SATSum, predict(satBasic), col = 'red')
+lines(sat$SATSum, predict(satQuad), col = 'blue')
+```
+
+### Transformations of the Outcome
+
+```{r}
+x2 <- rnorm(1000)
+y2 <- exp(1 + x2 + rnorm(1000, 0, 0.5))
+plot(x2, y2)
+plot(x2, log(y2))
+lmod2 <- lm(I(log(y2)) ~ x2)
+```
+
+### Interactions
+
+Can linear relationships vary by group? Interactions allow us to answer this question.
+```{r}
+satHS <- lm(FYGPA ~ HSGPA, data = sat)
+satHS
+satHSinter <- lm(FYGPA ~ HSGPA*sex, data = sat)
+summary(satHSinter)
+coef(satHSinter)[2]
+coef(satHSinter)[2] + coef(satHSinter)[4]
+```
+For men, a 1 point increase in HS GPA is associated with a 0.63 point increase in FY GPA, but for women, it's 0.87 points!
+
+The sex coefficient is very negative--does that mean women are expected to have lower college GPAs?!
+
+No! The interaction coefficient also involves the sex variable. Just as we had to specify sex to determine the relationship between HS and College GPA, we have to specify HS GPA to determine the relationship between sex and College GPA. Let see what the association between sex and college GPA is for students with different HS GPAs (2.5 and 3.5):
+```{r}
+coef(satHSinter)[3] + coef(satHSinter)[4]*2.5
+coef(satHSinter)[3] + coef(satHSinter)[4]*3.5
+```
+Interpretation: women with high grades in HS see slightly higher "gains from HS GPA" in their college GPA than men, but it's the reverse for low grades!
+
+## Inference
+
+How can we be sure that these differences are real? Let's start out with the confidence interval for an increase of 10 points on the SAT (100 points in our days)
+```{r}
+basicCoefs <- coef(summary(satBasic))
+x <- 10
+cat('Confidence interval for the incease in College GPA associated with a 10 point SAT increase:', c(basicCoefs[2,1]*x + pnorm(.025)*x*basicCoefs[2,2],
+  basicCoefs[2,1]*x + pnorm(.975)*x*basicCoefs[2,2]))
+```

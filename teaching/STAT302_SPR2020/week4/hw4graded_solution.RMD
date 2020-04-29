@@ -1,0 +1,140 @@
+---
+title: "STAT 302 SPR2020 Homework 4 Graded Solution"
+author: "Sheridan Grant"
+date: "4/27/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+Required libraries:
+```{r, warning=F, message=F}
+library(dplyr)
+```
+
+Read the SAT data, needed for multiple problems:
+```{r}
+sat <- read.csv('sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+n <- dim(sat)[1]
+```
+
+## Question 1
+
+### Part (a)
+```{r}
+sat %>% filter(SATM > SATV) %>% summarize(meanMathHigher = mean(SATSum))
+sat %>% filter(SATM < SATV) %>% summarize(meanVerbalHigher = mean(SATSum))
+```
+Students who do better on math do slightly better on average, though there's not much difference practically speaking.
+
+### Part (b)
+
+Two ways to do this: filtering and regression. I'll show both. Filtering:
+```{r}
+t.test(sat %>% filter(sex == 1) %>% pull(SATSum),
+       sat %>% filter(sex == 2) %>% pull(SATSum))
+
+t.test(sat %>% filter(sex == 1) %>% pull(HSGPA),
+       sat %>% filter(sex == 2) %>% pull(HSGPA))
+```
+In these data, men do better on the SAT on average and women get better grades in high school on average. Both differences are statistically significant with p << .05. Harder to say if they're practically/scientifically significant.
+
+Can also use regression:
+```{r}
+SATmod <- lm(SATSum ~ sex, data = sat)
+summary(SATmod)
+GPAmod <- lm(HSGPA ~ sex, data = sat)
+summary(GPAmod)
+```
+The coefficient estimate for "sex" is the same as the difference in means(!) and the p-value (in the 4th column of the coefficient table) is the same as the t test p-value. Coincidence???
+
+### Part (c)
+
+```{r}
+plot(sat$HSGPA, sat$SATM, 
+     col = 'red', xlab = 'High School GPA', ylab = 'SAT Score',
+     main = 'HS GPA vs. SAT Subject Scores')
+points(sat$HSGPA, sat$SATV, col = 'blue')
+legend(4.02, 70, c('SAT Math', 'SAT Verbal'), fill = c('blue', 'red'))
+```
+
+### Part (d)
+
+```{r}
+satMc <- (sat$SATM %in% 20:40) + 2*(sat$SATM %in% 41:60) + 3*(sat$SATM %in% 61:80)
+satVc <- (sat$SATV %in% 20:40) + 2*(sat$SATV %in% 41:60) + 3*(sat$SATV %in% 61:80)
+unique(satMc)
+unique(satVc)
+crossTab <- matrix(0, 3, 3)
+for (i in 1:n) {
+  crossTab[satMc[i], satVc[i]] <- crossTab[satMc[i], satVc[i]] + 1
+}
+crossTab
+table(satMc, satVc)
+n - sum(diag(crossTab))
+```
+About 1/3 of students fell in different categories for the verbal and math sections, which makes sense, as this will include both students who scored quite differently on the two sections and those that scored close but on either side of a cutoff.
+
+## Question 2
+
+### Part (a)
+
+The answer was at the end of the lecture8.RMD code file!
+```{r}
+f <- function(b) sum((sat$FYGPA - (b[1] + b[2]*sat$SATSum))^2)
+optim(c(0,0), f)$par
+lm(FYGPA ~ SATSum, data = sat)
+```
+
+### Part (b)
+
+```{r}
+myLm <- function(y, X, parInit) {
+  f <- function(b) sum((y - cbind(1, X)%*%b)^2)
+  optim(parInit, f)$par
+}
+myLm(sat$FYGPA, cbind(sat$SATM,
+                      sat$SATV,
+                      sat$HSGPA),
+     rep(0,4))
+lm(FYGPA ~ SATM + SATV + HSGPA, data = sat)
+```
+
+## Question 3
+
+### Part (a)
+
+Unfortunately, this question became confused by 1) the estimated intercept is extremely close to zero and 2) in the previous question, being "close enough" was good enough. So we're giving credit for it if you attempted it. But here's the "actual" solution...
+
+```{r}
+lm(FYGPA ~ SATSum - 1, data = sat)
+summary(lm(FYGPA ~ SATSum, data = sat))
+FYGPAc <- sat$FYGPA - mean(sat$FYGPA)
+SATc <- sat$SATSum - mean(sat$SATSum)
+summary(lm(FYGPAc ~ SATc - 1))
+```
+
+If you don't estimate an intercept, you assume it's zero, so your $\hat{\beta}$ will be different (in this case, by a small amount). Once you center the data, the coefficient estimates will be the same regardless of whether you estimate an intercept or not, because the estimated intercept must pass through the mean of the data, which is $(0,0)$ when the data are centered. However, if you look at the t values for the centered model with no intercept vs. the original model with intercept, they're a bit different. So inference and hypothesis testing will be different, even though the coefficient estimate is the same!
+
+### Part (b)
+
+```{r}
+triMod <- lm(FYGPA ~ SATM + SATV + HSGPA, data = sat)
+coef(triMod)
+```
+Holding SAT Matb and Verbal scores fixed, an increase of 0.1 points in HS GPA is associated with an increase of 0.058 points in FY College GPA.
+
+When we don't hold SAT scores fixed, we need to think about how they are expected to change with a change in HS GPA. We can do this with regression!
+```{r}
+satMincrease <- lm(SATM ~ HSGPA, data = sat)$coef[2]*0.1
+satVincrease <- lm(SATV ~ HSGPA, data = sat)$coef[2]*0.1
+```
+
+Now we include these expected increases with the 0.1 HS GPA increase in the original tri-variate model:
+```{r}
+coef(triMod)[2:4] %*% c(satMincrease, satVincrease, 0.1)
+coef(lm(FYGPA ~ HSGPA, data = sat))[2]*0.1
+```
+It's the same as if we just regressed on HSGPA!
