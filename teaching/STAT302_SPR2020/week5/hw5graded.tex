@@ -1,0 +1,113 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{Homework 5 Graded}
+\author{Sheridan Grant}
+\date{Must be uploaded to Canvas under ``Homework 5 Graded'' by \textbf{Monday, May 4 at 11:59pm}}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Instructions}
+
+Format your .RMD file using the template on the \href{https://sheridanlgrant.github.io/teaching/STAT302_SPR2020}{course website}. \textbf{Submit the .RMD file, the knitted .html output, and any other files or folders needed as a single .zip file.}
+
+The grader will be compiling your .RMD file and making sure it knits. Any libraries/packages needed should be near the top of the .RMD file, so the grader can make sure they're installed. Any other files needed to knit the .html should be in the zipped folder you turn in. \textbf{If your code does not knit and there is no immediate fix, the grader will grade your HTML for a [-10pts] penalty.}
+
+Any time I ask you to demonstrate something, show something, generate something, etc., you must provide the code and/or text commentary that does so.
+
+Finally, we will be giving [5pts] for code style and cleanliness. For any function you write, include a comment on the line above the function saying what the function expects as input and what it outputs. If you do this and the rest of your code is reasonably neat then this is an easy [5pts].
+
+\section{Programming Puzzles}
+
+\textbf{For this homework, you'll need the SAT and COVID-19 data that are on the course website.} I refer to the SATSum variable as the ``combined score.''
+
+\begin{enumerate}[(a)]
+	\item Write a function named \verb|greet| that takes in a single argument \verb|greeting|, and if \verb|greeting| is an upper-case character string, returns ``Hello, [\verb|greeting|].'' I.e. if \verb|greeting == `SHERIDAN'|, it returns \verb|``Hello, SHERIDAN''|. However, if \verb|greeting| is not an upper-case character string, it should ``throw an error''---not just print a message, but an actual error. There are easy built-in functions that will help. You may assume \verb|greeting| is upper-case if \verb|toupper| doesn't change \verb|greeting| in any way. [3pts]
+	\item Redo question 1(b) from HW 4 Graded, but don't use \verb|t.test| or your own $t$ test function. Instead, make a categorical variable and use it as the covariate in two \verb|lm| models. Show the model summaries and print out the two p-values separately. You may use \verb|t.test| to verify that the $p$-values are correct. [3pts]
+	\item Write code that generates data from the following model: $X \sim \Norm(0,1)$, $Z \sim \Norm(X,1)$, $Y \sim X + 2Z - XZ + \epsilon$ where $\epsilon \sim \Norm(0,1)$ and generate $10^5$ data points from this model. Fit two models to this data: model 1, $Y_i = \beta_0 + \beta_X X_i + \beta_Z Z_i + \epsilon_i$; and model 2, $Y_i = \beta_0 + \beta_X X_i + \beta_Z Z_i + \beta_{XZ} XZ \epsilon_i$. For each model, find 95\% confidence intervals for $\beta_X$ and $\beta_Z$, and identify whether or not they contain the true values of $\beta_X$ and $\beta_Z$. Write a sentence summarizing your results in terms of ``model misspecification.'' [4pts]
+\end{enumerate}
+
+\section{Inference in Linear Models}
+
+In this problem, you'll do inference on linear model coefficients and predictions like we did towards the end of class Wednesday. The questions are designed to be similar to code I wrote for lecture10.RMD, posted on the website.
+
+\begin{enumerate}[(a)]
+	\item Fit the model \verb|FYGPA ~ SATSum + HSGPA|. Provide a 90\% confidence interval for the first-year college GPA of an ``average'' student with SAT 100 and HS GPA 3.0. [2pts]
+	\item Now fit the model \verb|FYGPA ~ HSGPA*sex| (with \verb|sex| encoded as \verb|male == 0| and \verb|female == 1|). Make a scatterplot of HS vs. college GPA with male students colored \textcolor{red}{red} and female students colored \textcolor{blue}{blue}. Add two lines to the scatterplot: the line of predicted outcomes for female students, again in \textcolor{blue}{blue}, and the line of predicted outcomes for male students, again in \textcolor{red}{red}. [4pts]
+	\item Find a 90\% confidence interval for the change in first-year college GPA associated with a 1-point increase in HS GPA \textit{for female students}. [3pts]
+	\item Write a function \verb|infer| that takes as inputs:
+	\begin{enumerate}
+		\item A linear model object \verb|lmod|,
+		\item A numeric vector \verb|a|, and
+		\item A confidence level \verb|conf| between 0 and 1
+	\end{enumerate}
+	and returns a \verb|100conf%| interval for $a^T \beta$, where $\beta = [\beta_0, \beta_1, \ldots, \beta_d]$ is the vector of model coefficients. You may assume that $a$ and $\beta$ have the same length.\footnote{If you've done Q1(a) it'll be easy for you to check for this and throw an error if it's not true, but we won't be grading you based on this.}
+	You may \textbf{not} use the \verb|confint| function to write \verb|infer|, but you can use whatever you like to check your work. The lecture 10 code, the posted lecture slides from April 29, and checking your work with \verb|confint| should help you. [6pts]
+\end{enumerate}
+
+\section{Linear Models for COVID-19}
+
+\begin{enumerate}[(a)]
+	\item Using the COVID-19 data (on the website), create a data frame with two columns, \verb|Cases| and \verb|Date|, where \verb|Cases| is confirmed cases and \verb|Date| is a proper date-type variable, and where the rows correspond to all days in March with a non-zero number of confirmed cases in the city of San Francisco. There should be 27 rows. Print the first 6 rows of this data frame with \verb|head| for the grader. [3pts]
+	\item You want to model how the number of cases in SF evolved over the month of March. Plot the number of confirmed cases over time. Why is a linear model inappropriate (``inappropes,'' as the kids say these days) here? Find a transformation of the \verb|Cases| variable for which a linear model appears more appropriate, and plot \textit{it} over time. [3pts]
+	\item Fit a linear model to the transformed outcome and the Date variable. [1pt] Interpret the coefficient of interest. [1pt] Show the residual plot and comment on how plausible the linear model assumptions are, and show the Normal Q-Q plot and comment on how trustworthy inferences about model coefficients will be. [1pt] What is the model's prediction for the number of cases on April 1 in SF? How does this compare to the number there actually were? [1pt]
+\end{enumerate}
+
+\end{document}
