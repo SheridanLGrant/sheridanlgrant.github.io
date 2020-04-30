@@ -1,7 +1,7 @@
 ---
-title: "STAT 302 SPR2020 Lecture 9"
+title: "STAT 302 SPR2020 Lecture 10"
 author: "Sheridan Grant"
-date: "April 27, 2020"
+date: "April 29, 2020"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -21,7 +21,7 @@ n <- dim(sat)[1]
 
 ### Polynomial transformations of covariates
 
-Misspecification example from last class
+Misspecification example from last class--fixed!
 ```{r}
 x1 <- runif(1000)
 y1 <- x1^2 + rnorm(1000, 0, 0.1)
@@ -31,9 +31,10 @@ abline(lmod1, col = 'red')
 plot(x1, resid(lmod1))
 plot(lmod1)
 
-lmod1quad <- lm(y1 ~ x1 + I(x1^2))
+lmod1quad <- lm(y1 ~ x1 + I(x1^2))  # I() tells R to evaluate x1^2 before
+                                    # putting it in the formula
 lmod1quad
-plot(lmod1quad)
+plot(lmod1quad, which = 1)
 ```
 
 SAT Data:
@@ -45,6 +46,7 @@ plot(sat$SATSum, sat$FYGPA)
 lines(sat$SATSum, predict(satBasic), col = 'red')
 lines(sat$SATSum, predict(satQuad), col = 'blue')
 ```
+Estimating more coefficients sometimes buys you less uncertainty (HW 4 Graded Q3(b)), but sometimes makes you much more uncertain!
 
 ### Transformations of the Outcome
 
@@ -84,6 +86,26 @@ How can we be sure that these differences are real? Let's start out with the con
 ```{r}
 basicCoefs <- coef(summary(satBasic))
 x <- 10
-cat('Confidence interval for the incease in College GPA associated with a 10 point SAT increase:', c(basicCoefs[2,1]*x + pnorm(.025)*x*basicCoefs[2,2],
-  basicCoefs[2,1]*x + pnorm(.975)*x*basicCoefs[2,2]))
+cat('Confidence interval for the incease in College GPA associated with a 10 point SAT increase:', c(basicCoefs[2,1]*x + qnorm(.025)*x*basicCoefs[2,2],
+  basicCoefs[2,1]*x + qnorm(.975)*x*basicCoefs[2,2]))
+```
+
+How about a confidence interval for the GPA of a student with perfect SAT scores?
+```{r}
+cat('Expected GPA:', basicCoefs[,1]%*%c(1,160) -> yHat, '\n')
+cat('Estimated standard deviation:',
+    sqrt(c(1,160)%*%vcov(satBasic)%*%c(1,160)) -> sigmaHat, '\n')
+cat('95% CI:', c(yHat + qnorm(.025)*sigmaHat, yHat + qnorm(.975)*sigmaHat), '\n')
+```
+
+How does vcov come about? Complicated, but here's some intuition:
+```{r}
+n3 <- 50
+x3 <- rnorm(n3)
+x3uncor <- rnorm(n3)
+y3uncor <- x3 + x3uncor + rnorm(n3)
+vcov(lm(y3uncor ~ x3 + x3uncor - 1))
+x3cor <- rnorm(n3, x3, 0.5)
+y3cor <- x3 + x3cor + rnorm(n3)
+vcov(lm(y3cor ~ x3 + x3cor - 1))
 ```
