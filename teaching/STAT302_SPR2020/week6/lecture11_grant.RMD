@@ -1,0 +1,123 @@
+---
+title: "STAT 302 SPR2020 Lecture 11"
+author: "Sheridan Grant"
+date: "May 4, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+sat$sex <- sat$sex - 1  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+```
+
+## Factors
+```{r}
+sat$fakeSex <- sample(c('female', 'male', 'other/no response'), n, replace = T)
+levels(sat$fakeSex)
+sat$fakeSex <- as.factor(sat$fakeSex)
+levels(sat$fakeSex)
+lm(FYGPA ~ HSGPA + fakeSex, data = sat)
+# sat$fakeSex <- as.factor(sat$fakeSex, levels = c('male', 'female', 'other/no response'))
+sat$fakeSex <- factor(sat$fakeSex, levels = c('male', 'female', 'other/no response'))
+lm(FYGPA ~ HSGPA + fakeSex, data = sat)
+```
+
+## Prediction vs. Fit
+
+```{r}
+satMod1 <- lm(FYGPA ~ HSGPA, data = sat)
+sse1 <- sum((sat$FYGPA - predict(satMod1))^2)
+```
+SSE measures *goodness of fit*, how well the model fits the data it was fit to.
+
+Let's improve our goodness of fit, shall we?
+```{r}
+nonsense <- matrix(rnorm(n*(n-2)), n, n-2)
+nonsenseData <- data.frame(cbind(FYGPA = sat$FYGPA, HSGPA = sat$HSGPA, nonsense))
+satMod2 <- lm(FYGPA ~ HSGPA + V3, data = nonsenseData)
+cat('Old SSE:', sse1, '\n',
+    'SSE with nonsense covariate included:',
+    sum((sat$FYGPA - predict(satMod2))^2), '\n')
+
+satMod3 <- lm(FYGPA ~ ., data = nonsenseData[,1:502])
+
+cat('Old SSE:', sse1, '\n',
+    'SSE with 500 nonsense covariates included:',
+    sum((sat$FYGPA - predict(satMod3))^2), '\n')
+
+satMod4 <- lm(FYGPA ~ ., data = nonsenseData)
+cat('Old SSE:', sse1, '\n',
+    'SSE with 998 nonsense covariates included:',
+    sum((sat$FYGPA - predict(satMod4))^2), '\n')
+```
+Something isn't right.
+
+### Degrees of Freedom
+
+```{r}
+cat('Residual standard error from model:', sigma(satMod1), '\n',
+    'By hand:', sqrt(sse1/(n-length(coef(satMod1)))), '\n')
+
+cat('Old sigma-hat:', sigma(satMod1), '\n',
+    'sigma-hat with nonsense covariate included:', sigma(satMod2), '\n')
+
+cat('Old sigma-hat:', sigma(satMod1), '\n',
+    'sigma-hat with 500 nonsense covariates included:', sigma(satMod3), '\n')
+
+cat('Old sigma-hat:', sigma(satMod1), '\n',
+    'sigma-hat with 998 nonsense covariates included:', sigma(satMod4), '\n')  # div 0
+```
+Residual standard error (estimated std. dev., sigma-hat) estimates the standard deviation of the residual $\epsilon$. In normalizing by sample size, it divides by degrees of freedom, not sample size. $df = n - \text{# model parameters}$. The more parameters you estimate, the smaller the denominator and sigma-hat is inflated.
+
+### Polynomials
+
+Our clever trick--broken! Let's try another.
+```{r}
+satMod5 <- lm(FYGPA ~ HSGPA + I(HSGPA^2), data = sat)
+
+plot(sat$HSGPA, sat$FYGPA)
+abline(satMod1, col = 'blue')
+lines(seq(2,4,.1), cbind(rep(1,21), seq(2,4,.1), seq(2,4,.1)^2)%*%coef(satMod5), col = 'red')
+
+cat('Old sigma-hat:', sigma(satMod1), '\n',
+    'sigma-hat with quadratic term included:', sigma(satMod5), '\n')
+
+satMod6 <- lm(FYGPA ~ poly(HSGPA, 20), data = sat)
+
+cat('Old sigma-hat:', sigma(satMod1), '\n',
+    'sigma-hat with polynomial of order 20:', sigma(satMod6), '\n')
+```
+
+### Prediction
+
+Split the data into train (we train, or fit, the model to this data) and test (we test the model's predictive power on these data):
+```{r}
+indices <- sample(1000)
+trainIndices <- indices[1:500]
+testIndices <- indices[501:1000]
+train <- nonsenseData[trainIndices,]
+test <- nonsenseData[testIndices,]
+```
+
+Train the sensible univariate model, and see that the training error (with no df correction, which is okay because there are 1000 data points and only 2 coefficients) is similar to the test error--this model's predictive power is just as good on test data as it is on training data!
+```{r}
+satMod1train <- lm(FYGPA ~ HSGPA, data = train)
+sqrt(sum((train$FYGPA - predict(satMod1train, train))^2)/500)
+sqrt(sum((test$FYGPA - predict(satMod1train, test))^2)/500)
+```
+
+Same thing for the model with tons of nonsense covariates. The training error is artificially low without the df correction, but the test error is higher than even the df-corrected error, because the nonsense covariates provide no predictive power--in fact, they *hurt* predictive power!
+```{r}
+satMod3train <- lm(FYGPA ~ ., data = train[,1:252])
+summary(satMod3train)
+sqrt(sum((train$FYGPA - predict(satMod3train, train))^2)/500)
+sqrt(sum((train$FYGPA - predict(satMod3train, train))^2)/(500-252))  # df correction
+sqrt(sum((test$FYGPA - predict(satMod3train, test))^2)/500)
+```
