@@ -1,0 +1,190 @@
+---
+title: "STAT 302 SPR2020 Homework 5 Graded Solution"
+author: "Sheridan Grant"
+date: "5/4/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+library(dplyr)
+```
+
+Read the SAT and coronavirus data:
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)[1] <- 'sex'
+colnames(sat)
+sat$sex <- sat$sex - 1  # 0/1 encoding
+
+covid <- read.csv("../data/coronavirus.csv")
+colnames(covid)[1] <- 'Case_Type'
+colnames(covid)
+covid$Date <- as.Date(covid$Date, format = '%m/%d/%Y')
+```
+
+## Question 1
+
+### Part (a)
+```{r}
+greet <- function(greeting) {
+  if (toupper(greeting) == greeting) {
+    return(paste('Hello', greeting))
+  } else {
+    stop('Not uppercase')
+  }
+}
+```
+
+### Part (b)
+
+```{r}
+satSex <- lm(SATSum ~ sex, data = sat)
+HSgpaSex <- lm(HSGPA ~ sex, data = sat)
+summary(satSex)
+summary(HSgpaSex)
+coef(summary(satSex))[2,4]
+coef(summary(HSgpaSex))[2,4]
+```
+beta, in both cases, is equal to the difference in means between the two groups, and the p-values for beta are the same (up to small numerical precision errors that you have seen are common in optimization problems) as those of the t-test. That's because beta is the difference in the outcome associated with a 1-unit difference in sex, which in this case is just a difference between male and female.
+
+### Part (c)
+
+```{r}
+x <- rnorm(10^5)
+z <- rnorm(10^5, x)
+y <- rnorm(10^5, x+2*z-x*z)
+
+mod1 <- lm(y ~ x + z)
+mod2 <- lm(y ~ x*z)
+confint(mod1, c(2,3))
+confint(mod2, c(2,3))
+```
+Both intervals contain the truth, in *both* models--but the intervals are shorter in the correct model. You will be graded on whether you wrote the correct code, not whether you got the exact same outputs, because they are random!
+
+## Question 2
+
+### Part (a)
+
+```{r}
+mod2a <- lm(FYGPA ~ SATSum + HSGPA, data = sat)
+betas2a <- coef(mod2a)
+a2a <- c(1,100,3)
+se2a <- sqrt(a2a%*%vcov(mod2a)%*%a2a)
+cat('90% CI for FYGPA of average student:',
+    c(a2a%*%betas2a + qnorm(.05)*se2a, a2a%*%betas2a + qnorm(.95)*se2a),
+    '\nwith expectation', a2a%*%betas2a, '\n\n')
+```
+
+### Part (b)
+
+```{r}
+mod2b <- lm(FYGPA ~ HSGPA*sex, data = sat)
+betas2b <- coef(mod2b)
+plot(sat %>% filter(sex == 0) %>% pull(HSGPA),
+     sat %>% filter(sex == 0) %>% pull(FYGPA),
+     col = 'red', main = 'HS vs. College GPA by Sex',
+     xlab = 'HS GPA', ylab = 'College GPA')
+points(sat %>% filter(sex == 1) %>% pull(HSGPA),
+     sat %>% filter(sex == 1) %>% pull(FYGPA),
+     col = 'blue')
+abline(betas2b[1], betas2b[2], col = 'red')
+abline(betas2b[1]+betas2b[3], betas2b[2]+betas2b[4], col = 'blue')
+legend(4.025, 1.2, c('Male', 'Female'), c('red', 'blue'))
+```
+
+### Part (c)
+
+```{r}
+a2c <- c(0,1,0,1)
+se2c <- sqrt(a2c %*% vcov(mod2b) %*% a2c)
+c(betas2b %*% a2c + qnorm(0.05)*se2c, betas2b %*% a2c + qnorm(0.95)*se2c)
+```
+
+### Part (d)
+
+```{r}
+infer <- function(lmod, a, conf = 0.95) {
+  betas <- coef(lmod)
+  se <- sqrt(a %*% vcov(lmod) %*% a)
+  return(c(betas %*% a + qnorm((1-conf)/2)*se,
+           betas %*% a + qnorm(conf + (1-conf)/2)*se))
+}
+infer(mod2a, a2a, 0.9)
+infer(mod2b, a2c, 0.9)
+```
+
+## Question 3
+
+### Part (a)
+
+```{r}
+covid %>%
+  filter(Admin2 == 'San Francisco',
+         Case_Type == 'Confirmed',
+         Cases > 0,
+         Date < '2020-04-01',
+         Date >= '2020-03-01') %>%
+  select(Cases, Date) %>%
+  arrange(Date) ->
+  sf
+head(sf)
+```
+
+It's okay if they weren't ordered, we're checking for both (apologies to the grader--I should have asked for ordering by Date).
+
+### Part (b)
+
+```{r}
+plot(sf$Date, sf$Cases, type = 'l',
+     xlab = 'Date', ylab = 'Confirmed Cases',
+     main = 'SF COVID-19 Cases in March')
+
+plot(sf$Date, log(sf$Cases), type = 'l',
+     xlab = 'Date', ylab = 'Confirmed Cases',
+     main = 'SF COVID-19 Cases in March')
+```
+
+Except for the little kink in the first part of the month, linearity appears pretty reasonable for the log of the confirmed cases. Linearity is clearly inappropriate on the original scale because the slope is continuously and rapidly increasing.
+
+### Part (c)
+
+```{r}
+sf$logCases <- log(sf$Cases)
+sfMod <- lm(logCases ~ Date, data = sf)
+summary(sfMod)
+```
+
+The expected increase in log cumulative case count associated with a step forward in time of 1 day is 0.19.
+```{r}
+plot(sfMod, which = 1)
+```
+
+If we ignore the first two data points, the residuals appear to bear little relationship to the Date variable. However, we should not ignore those two points, especially with 27 observations total! There is some concern that they artificially increased the slope of the regression line somewhat.
+```{r}
+plot(sfMod, which = 2)
+```
+
+The first 3-5 residuals make the observed distribution substantially non-normal, so standard error estimates of model coefficients should be treated conservatively.
+```{r}
+apr1log <- predict(sfMod)[dim(sf)[1]] + coef(sfMod)[2]
+apr1 <- exp(apr1log)
+apr1log
+apr1
+covid %>% 
+  filter(Admin2 == 'San Francisco',
+         Date == '2020-03-31',
+         Case_Type == 'Confirmed') %>%
+  select(Cases)
+```
+
+We predict 679 cases on April 1, far more than the 397 that were observed. Let's investigate--our examination of the residuals earlier suggested that our regression line's slope might be too high. We plot the predicted cases (on the original scale) against the true number of cases, along with the line $y=x$:
+```{r}
+plot(sf$Cases, exp(predict(sfMod)))
+abline(0,1)
+```
+
+Indeed, we see that our model begins to overpredict towards the end of March. And because we regressed on the log scale, on the original scale these overpredictions are quite large. Modeling pandemics ain't easy!

@@ -14,7 +14,7 @@ library(dplyr)
 
 Read the SAT data, needed for multiple problems:
 ```{r}
-sat <- read.csv('sat.csv')
+sat <- read.csv('../data/sat.csv')
 colnames(sat)
 colnames(sat)[1] <- 'sex'
 n <- dim(sat)[1]
