@@ -56,7 +56,7 @@ beta, in both cases, is equal to the difference in means between the two groups,
 ```{r}
 x <- rnorm(10^5)
 z <- rnorm(10^5, x)
-y <- rnorm(10^5, x+2*z-x*z)
+y <- rnorm(10^5, x+2*z-10*x*z)
 
 mod1 <- lm(y ~ x + z)
 mod2 <- lm(y ~ x*z)
