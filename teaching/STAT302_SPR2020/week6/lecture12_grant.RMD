@@ -1,0 +1,116 @@
+---
+title: "STAT 302 SPR2020 Lecture 11"
+author: "Sheridan Grant"
+date: "May 4, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+sat$sex <- sat$sex - 1  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+```
+
+
+## Polynomials
+
+```{r}
+plot(faithful$waiting, faithful$eruptions,
+     xlim = c(40,100), ylim = c(1,6))
+faithfulGrid <- data.frame(waiting = seq(35,105))
+deg1 <- lm(eruptions ~ waiting, data = faithful)
+lines(faithfulGrid$waiting, predict(deg1, faithfulGrid), col = 'green')
+plot(deg1, which = 1)
+deg5 <- lm(eruptions ~ poly(waiting,5), data = faithful)
+lines(faithfulGrid$waiting, predict(deg5, faithfulGrid), col = 'blue')
+deg20 <- lm(eruptions ~ poly(waiting,20), data = faithful)
+lines(faithfulGrid$waiting, predict(deg20, faithfulGrid), col = 'red')
+
+sigma(deg1)
+sigma(deg5)
+sigma(deg20)
+```
+Residual SE keeps decreasing--even df-corrected--though clearly the last model is ridiculous. Degree-5 more ambiguous. So even assessing model fit with model size (degrees of freedom) adjustment isn't really enough.
+
+(BTW, what model should you actually use?)
+```{r}
+faithful$phase <- factor((faithful$waiting > 60) + (faithful$waiting > 75))
+faithfulGrid$phase <- factor((faithfulGrid$waiting > 60) + (faithfulGrid$waiting > 75))
+piecewise <- lm(eruptions ~ waiting*phase, data = faithful)
+plot(faithful$waiting, faithful$eruptions,
+     xlim = c(40,100), ylim = c(1,6))
+lines(faithfulGrid$waiting, predict(piecewise, faithfulGrid), col = 'brown')
+sigma(piecewise)
+```
+This makes an ounce of sense, is slightly more complicated than basic linear model to respect the structure of the data, and has lower sigma than any of the polynomials.
+
+## Prediction
+
+Split the data into train (we train, or fit, the model to this data) and test (we test the model's predictive power on these data):
+```{r}
+n <- dim(faithful)[1]
+indices <- sample(n)
+nTrain <- floor(1/2*n)
+train <- faithful[indices[1:nTrain],]
+test <- faithful[indices[(nTrain+1):n],]
+```
+
+Now we *train* (machine learning) or *fit* (statistics) the model on the training data, and *test* it on the test data:
+```{r}
+deg1t <- lm(eruptions ~ waiting, data = train)
+deg5t <- lm(eruptions ~ poly(waiting,5), data = train)
+deg20t <- lm(eruptions ~ poly(waiting,20), data = train)
+piecewiseT <- lm(eruptions ~ waiting*phase, data = train)
+sqrt(mean((test$eruptions - predict(deg1t, test))^2))
+sqrt(mean((test$eruptions - predict(deg5t, test))^2))
+sqrt(mean((test$eruptions - predict(deg20t, test))^2))
+sqrt(mean((test$eruptions - predict(piecewiseT, test))^2))
+```
+RMSE
+
+Whoa, that 20-degree error is wild! What happened? The 20-degree polynomial prediction line appears to fit the training data super well:
+```{r}
+plot(train$waiting, train$eruptions, xlim = c(35, 105), ylim = c(0,10))
+lines(faithfulGrid$waiting, predict(deg20t, faithfulGrid), col = 'red')
+```
+
+But on the test data, it's a different story. It's possible that due to random splitting into train/test your test fit isn't too bad, but probably there are some pretty bad predictions at points.
+```{r}
+plot(test$waiting, test$eruptions, xlim = c(35, 105), ylim = c(0,10))
+lines(faithfulGrid$waiting, predict(deg20t, faithfulGrid), col = 'red')
+```
+
+Extrapolation gets way worse the more overfit the model is. Even for quintic:
+```{r}
+plot(test$waiting, test$eruptions, xlim = c(35, 105), ylim = c(0,10))
+lines(faithfulGrid$waiting, predict(deg5t, faithfulGrid), col = 'blue')
+```
+
+How about the piecewise?
+```{r}
+plot(test$waiting, test$eruptions, xlim = c(35, 105), ylim = c(0,10))
+lines(faithfulGrid$waiting, predict(piecewiseT, faithfulGrid), col = 'red')
+```
+
+## Extrapolation
+
+In general, extrapolation is prediction on data points that come from a different distribution than the training data. You did a slight extrapolation at the end of HW 5 graded, and saw that even this extrapolation was difficult to get right. Let's consider a more extreme example, for the SAT data:
+
+```{r}
+satTrain <- sat %>% filter(SATSum < 120,
+                           SATSum > 80)
+satTest <- sat %>% filter(SATSum > 140)
+satMod <- lm(FYGPA ~ HSGPA, data = satTrain)
+sigma(satMod)
+sqrt(mean((satTest$FYGPA - predict(satMod, satTest))^2))
+```

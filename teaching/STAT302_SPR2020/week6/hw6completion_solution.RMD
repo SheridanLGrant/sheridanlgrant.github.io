@@ -1,0 +1,39 @@
+---
+title: "STAT 302 SPR2020 Homework 6 Completion Solution"
+author: "Sheridan Grant"
+date: "5/6/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+```
+
+## Question 1
+
+```{r}
+head(mtcars)
+dim(mtcars)
+plot(mtcars$cyl, mtcars$mpg)
+
+mtcars$cylFactor <- factor(mtcars$cyl, levels = c('6','4','8'))
+
+lModMPG <- lm(mpg ~ cyl, data = mtcars)  # linear in number of cylinders
+fModMPG <- lm(mpg ~ cylFactor, data = mtcars)  # number of cylinders is a factor
+
+summary(lModMPG)
+summary(fModMPG)
+
+lModHP <- lm(hp ~ cyl, data = mtcars)  # linear in number of cylinders
+fModHP <- lm(hp ~ cylFactor, data = mtcars)  # number of cylinders is a factor
+
+summary(lModHP)
+summary(fModHP)
+```
+
+We compare residual standard error--degrees of freedom-normalized--for a better notion of model fit than just sum of squared residuals. For MPG, the extra coefficient we get from the factor model actually decreases fit slightly--it's not worth the degree of freedom it cost. The opposite is the case for the HP models. In all cases, however, the differences are relatively small, probably because linearity in number of cylinders is a fairly reasonable assumption.
+
+In the purely linear MPG model, an increase of 2 cylinders is associated with a decrease of about 5.75 mpg. In the factor model, the expected MPG of 4-cylinder cars is about 7 mpg higher than 6-cylinder cars, while the expected MPG of 8-cylinder cars is about 4.6 mpg lower.
