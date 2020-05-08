@@ -63,7 +63,7 @@ mod2 <- lm(y ~ x*z)
 confint(mod1, c(2,3))
 confint(mod2, c(2,3))
 ```
-Both intervals contain the truth, in *both* models--but the intervals are shorter in the correct model. You will be graded on whether you wrote the correct code, not whether you got the exact same outputs, because they are random!
+Both intervals contain the truth, in *both* models (misspecified *or* correctly specified)--but the intervals are shorter in the correct (versus the misspecified) model. You will be graded on whether you wrote the correct code, not whether you got the exact same outputs, because they are random!
 
 ## Question 2
 
