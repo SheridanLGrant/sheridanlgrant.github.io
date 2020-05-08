@@ -452,18 +452,18 @@ summary(satSex)</code></pre>
 <h3>Part (c)</h3>
 <pre class="r"><code>x &lt;- rnorm(10^5)
 z &lt;- rnorm(10^5, x)
-y &lt;- rnorm(10^5, x+2*z-x*z)
+y &lt;- rnorm(10^5, x+2*z-10*x*z)
 
 mod1 &lt;- lm(y ~ x + z)
 mod2 &lt;- lm(y ~ x*z)
 confint(mod1, c(2,3))</code></pre>
 <pre><code>##       2.5 %   97.5 %
-## x 0.9632212 0.998334
-## z 1.9876058 2.012394</code></pre>
+## x 0.9421878 1.247037
+## z 1.8237705 2.039640</code></pre>
 <pre class="r"><code>confint(mod2, c(2,3))</code></pre>
 <pre><code>##       2.5 %   97.5 %
-## x 0.9896795 1.007237
-## z 1.9969143 2.009309</code></pre>
+## x 0.9934927 1.011012
+## z 1.9930011 2.005407</code></pre>
 <p>Both intervals contain the truth, in <em>both</em> models–but the intervals are shorter in the correct model. You will be graded on whether you wrote the correct code, not whether you got the exact same outputs, because they are random!</p>
 </div>
 </div>
@@ -593,11 +593,11 @@ apr1log</code></pre>
 ## 679.1813</code></pre>
 <pre class="r"><code>covid %&gt;% 
   filter(Admin2 == &#39;San Francisco&#39;,
-         Date == &#39;2020-03-31&#39;,
+         Date == &#39;2020-04-01&#39;,
          Case_Type == &#39;Confirmed&#39;) %&gt;%
   select(Cases)</code></pre>
 <pre><code>##   Cases
-## 1   397</code></pre>
+## 1   434</code></pre>
 <p>We predict 679 cases on April 1, far more than the 397 that were observed. Let’s investigate–our examination of the residuals earlier suggested that our regression line’s slope might be too high. We plot the predicted cases (on the original scale) against the true number of cases, along with the line <span class="math inline">\(y=x\)</span>:</p>
 <pre class="r"><code>plot(sf$Cases, exp(predict(sfMod)))
 abline(0,1)</code></pre>

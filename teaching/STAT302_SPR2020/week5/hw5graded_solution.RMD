@@ -176,12 +176,12 @@ apr1log
 apr1
 covid %>% 
   filter(Admin2 == 'San Francisco',
-         Date == '2020-03-31',
+         Date == '2020-04-01',
          Case_Type == 'Confirmed') %>%
   select(Cases)
 ```
 
-We predict 679 cases on April 1, far more than the 397 that were observed. Let's investigate--our examination of the residuals earlier suggested that our regression line's slope might be too high. We plot the predicted cases (on the original scale) against the true number of cases, along with the line $y=x$:
+We predict 679 cases on April 1, far more than the 434 that were observed. Let's investigate--our examination of the residuals earlier suggested that our regression line's slope might be too high. We plot the predicted cases (on the original scale) against the true number of cases, along with the line $y=x$:
 ```{r}
 plot(sf$Cases, exp(predict(sfMod)))
 abline(0,1)
