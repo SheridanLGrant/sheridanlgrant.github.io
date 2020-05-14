@@ -28,7 +28,7 @@ acc <- function(y, yhat) mean(y == yhat)
 
 ## Cross-Validation
 
-Split the data frame into 4 parts
+Split the data frame into 4 parts. This sets up the indexing.
 ```{r}
 faithfulGrid <- data.frame(waiting = seq(35,105))
 n <- dim(faithful)[1]
@@ -37,7 +37,7 @@ randomInd <- sample(n)
 splitSize <- n/k  # Only works if n/k is an integer. Use caret package!
 ```
 
-Train on 3/4 of data, test on 1/4, plot estimated models. The indexing is an absolute nightmare, as you can see, and this is the special case when n/k is an integer. Indexing with a minus sign first *removes* those indices.
+Train on 3/4 of data 4 times, leaving out a different 1/4 for testing each time. Here we plot the 4 estimated models. The indexing is an absolute nightmare, as you can see, and this is the special case when n/k is an integer. Indexing with a minus sign first *removes* indices.
 ```{r}
 linMods <- lapply(1:k, function(i) lm(eruptions ~ waiting,
 data = faithful[randomInd[-((splitSize*(i-1)+1):(splitSize*i))],]))
@@ -54,22 +54,22 @@ for (i in 1:k) {
 }
 ```
 
-RMSEs from CV:
+RMSEs from CV: test on the left-out 1/4 of the data. You will not have to do this indexing yourself.
 ```{r}
-linRMSEs <- sapply(1:k, 
-                   function(i) rmse(faithful$eruptions[splits[testInds,i]],
+linRMSEs <- sapply(1:k,
+                   function(i) rmse(faithful$eruptions[randomInd[(splitSize*(i-1)+1):(splitSize*i)]],
                                     predict(linMods[[i]],
-                                            faithful[splits[testInds,i],])))
+                                            faithful[randomInd[(splitSize*(i-1)+1):(splitSize*i)],])))
 
-polRMSEs <- sapply(1:k, 
-                   function(i) rmse(faithful$eruptions[splits[testInds,i]],
+polRMSEs <- sapply(1:k,
+                   function(i) rmse(faithful$eruptions[randomInd[(splitSize*(i-1)+1):(splitSize*i)]],
                                     predict(polMods[[i]],
-                                            faithful[splits[testInds,i],])))
+                                            faithful[randomInd[(splitSize*(i-1)+1):(splitSize*i)],])))
 mean(linRMSEs)
 mean(polRMSEs)
 ```
 
-Caret package makes CV (cross-validation easier):
+Caret package makes CV (cross-validation easier).
 ```{r}
 folds4 <- createFolds(sample(n), k)
 linModsCaret <- lapply(folds4, function(fold) lm(eruptions ~ waiting,
@@ -77,6 +77,8 @@ linModsCaret <- lapply(folds4, function(fold) lm(eruptions ~ waiting,
 linRMSEsCaret <- sapply(1:k, function(i) rmse(faithful$eruptions[folds4[[i]]],
                                               predict(linModsCaret[[i]],
                                                       faithful[folds4[[i]],])))
+
+mean(linRMSEsCaret)
 ```
 Still isn't pretty, though.
 

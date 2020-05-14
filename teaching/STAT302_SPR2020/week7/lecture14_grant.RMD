@@ -1,0 +1,231 @@
+---
+title: "STAT 302 SPR2020 Lecture 14"
+author: "Sheridan Grant"
+date: "May 13, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+Libraries:
+```{r}
+library(tidyverse)
+```
+
+Helper functions:
+```{r}
+# e^x/(e^x+1) for input x
+expit <- function(x) exp(x)/(exp(x) + 1)
+
+# root mean squared error for true y and prediction yhat
+rmse <- function(y,yhat) sqrt(mean((y-yhat)^2))
+
+# mean absolute error for true y and prediction yhat
+mae <- function(y,yhat) mean(abs(y-yhat))
+
+# accuracy for predictions yhat and true binary outcome y
+acc <- function(y, yhat) mean(y == yhat)
+```
+
+SAT data
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)
+colnames(sat)[1] <- 'sex'
+sat$sex <- sat$sex - 1  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+```
+
+## Logistic Regression Toy Example
+
+Suppose we're interested in whether or not freshmen get the "UW pass" (2.0) GPA.
+```{r}
+linMod <- lm(FYGPA ~ SATSum, data = sat)
+
+sat$pass <- sat$FYGPA >= 2
+logitMod <- glm(pass ~ SATSum, data = sat, 
+                family = 'binomial')  # binomial tells glm to do logistic reg.
+
+head(predict(linMod))
+head(predict(logitMod, type = 'response'))
+```
+
+Linear Regression analysis:
+```{r}
+plot(sat$SATSum, sat$FYGPA)
+points(sat$SATSum, predict(linMod), col = 'red')
+```
+
+Logistic Regression analysis:
+```{r}
+plot(jitter(sat$SATSum), sat$pass)  # jitter shows density for discrete vals
+points(sat$SATSum, predict(logitMod, type = 'response'), col = 'red')
+```
+
+### Estimated probabilities
+
+Linear Regression analysis:
+```{r}
+x <- 160
+coef(linMod)[1] + coef(linMod)[2]*x
+predict(linMod, data.frame(SATSum = x))
+```
+
+Logistic Regression analysis:
+```{r}
+coef(logitMod)[1] + coef(logitMod)[2]*x
+predict(logitMod, data.frame(SATSum = x))
+
+expit(coef(logitMod)[1] + coef(logitMod)[2]*x)
+predict(logitMod, data.frame(SATSum = x), type = 'response')
+```
+
+### Model Fitting
+
+Linear Regression analysis:
+```{r}
+summary(linMod)
+```
+Residual standard error tells you about the model fit, is a function of the optimal sum of squares found by the optimization routine. df tells you about size/complexity of the model.
+
+Logistic Regression analysis:
+```{r}
+summary(logitMod)
+```
+Residual deviance tells you about the model fit, is a function of the *objective* minimized by the optimization routine. df tells you about size/complexity, Fisher Scoring is the optimization technique.
+
+### Prediction
+
+Here's some fake new data:
+```{r}
+test <- data.frame(FYGPA = c(1.8, 2, 2.5),
+                   pass = c(0,1,1),
+                   SATSum = c(110, 95, 115),
+                   HSGPA = c(2.0, 2.0, 2.0))
+```
+
+Linear Regression analysis:
+```{r}
+rmse(test$FYGPA, predict(linMod, test))
+rmse(test$FYGPA, predict(lm(FYGPA ~ HSGPA, data = sat), test))
+
+mae(test$FYGPA, predict(linMod, test))
+mae(test$FYGPA, predict(lm(FYGPA ~ HSGPA, data = sat), test))
+```
+
+Logistic Regression analysis:
+```{r}
+f1 <- function(x) x > 0.5
+f2 <- function(x) x > 0.7
+
+acc(test$pass, f1(predict(logitMod, test, type = 'response')))
+acc(test$pass, f2(predict(logitMod, test, type = 'response')))
+```
+
+## Practical Example: Senate Voting Behavior
+
+We know how to handle binary and categorical predictor variables. How about outcomes?
+```{r}
+votes115 <- read_csv('../data/S115_votes.csv')
+members115 <- read_csv('../data/S115_members.csv')
+joint115 <- inner_join(votes115, members115, by = 'icpsr')  # link records on senator ID
+joint115 %>% filter(!is.na(nominate_dim1), !is.na(nominate_dim2)) -> joint115
+unique(joint115$cast_code)
+joint115 <- joint115 %>% filter(cast_code %in% c(1,6),
+                                party_code %in% c(100,200))
+joint115$party <- ifelse(joint115$party_code == 100, 'D', 'R')
+joint115$yay <- (joint115$cast_code == 1)
+n <- dim(joint115)[1]
+```
+
+How likely are senators from each party to vote to pass bills? 115th congress (2017-2019).
+```{r}
+# Logistic regression
+partyMod <- glm(yay ~ party, data = joint115, family = 'binomial')
+summary(partyMod)
+```
+Which party controlled the Senate 2017-2019?
+
+What do the coefficient estimates mean?
+```{r}
+cat('Prob D votes yay:', expit(coef(partyMod)[1]),
+    '\nProb R votes yay:', expit(sum(coef(partyMod))), '\n\n')
+```
+
+We didn't need a fancy model for this, actually:
+```{r}
+joint115 %>% group_by(party) %>% summarize(yayProb = mean(yay))
+```
+
+It gets interesting when continuous covariates are included:
+```{r}
+nomMod <- glm(yay ~ nominate_dim1*nominate_dim2, 
+              data = joint115, family = 'binomial')
+summary(nomMod)
+```
+
+### Prediction and Extrapolation
+
+```{r}
+ind <- sample(n)
+nTrain <- floor(n/2)
+train115 <- joint115[ind[1:nTrain],]
+test115 <- joint115[ind[(nTrain+1):n],]
+
+trainParty <- glm(yay ~ party, data = train115, family = 'binomial')
+trainNom <- glm(yay ~ nominate_dim1*nominate_dim2,
+                data = train115, family = 'binomial')
+
+acc(test115$yay, f1(predict(trainParty, test115, type = 'response')))
+acc(test115$yay, f1(predict(trainNom, test115, type = 'response')))
+```
+
+
+Predict for a different congress (103rd, 1993-1995). Extrapolation or no?
+```{r}
+votes103 <- read_csv('../data/S103_votes.csv')
+members103 <- read_csv('../data/S103_members.csv')
+joint103 <- inner_join(votes103, members103, by = 'icpsr')
+dim(joint103)
+unique(joint103$cast_code)
+joint103 <- joint103 %>% filter(cast_code %in% c(1,6),
+                                party_code %in% c(100,200))
+joint103$party <- ifelse(joint103$party_code == 100, 'D', 'R')
+joint103$yay <- (joint103$cast_code == 1)
+```
+
+Extrapolation accuracy. Using our knowledge that yays are more likely than nays when the same party controls the House and Senate (House sends bills to the Senate), we can improve the accuracy by always guessing "1"--our models and accuracy metric could use improvement...
+```{r}
+predProbsParty <- expit(predict(partyMod, joint103))
+acc(joint103$yay, f1(predProbsParty))
+
+predProbsNom <- expit(predict(nomMod, joint103))
+acc(joint103$yay, f1(predProbsNom))
+
+mean(joint115$yay)
+acc(joint103$yay, 1) 
+```
+
+## Plot Generating for Slides
+
+In case you're curious how I make slides.
+
+Linear regression:
+```{r}
+x <- rnorm(100)
+y <- 1 + x + rnorm(100)
+plot(x, y, main = '')
+abline(1, 1, col = 'red')
+```
+
+Logistic regression:
+```{r}
+x <- rnorm(100)
+probs <- expit(1 + x + rnorm(100))
+y <- rbinom(100, 1, probs)
+plot(x, y, main = '', ylab = 'y, p-hat')
+lines(seq(-3,3,.1), expit(1 + seq(-3,3,.1)), col = 'red')
+```
+
