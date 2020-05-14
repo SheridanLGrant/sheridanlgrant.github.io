@@ -1,0 +1,167 @@
+---
+title: "STAT 302 SPR2020 Homework 6 Graded Solution"
+author: "Sheridan Grant"
+date: "5/13/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+library(dplyr)
+```
+
+Read the SAT and coronavirus data:
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)[1] <- 'sex'
+colnames(sat)
+sat$sex <- sat$sex - 1  # 0/1 encoding
+
+covid <- read.csv("../data/coronavirus.csv")
+colnames(covid)[1] <- 'Case_Type'
+colnames(covid)
+covid$Date <- as.Date(covid$Date, format = '%m/%d/%Y')
+```
+
+RMSE helper function:
+```{r}
+rmse <- function(y,yhat) sqrt(mean((y-yhat)^2))
+```
+
+## Question 1
+
+### Part a
+
+```{r}
+skew <- function(x) mean(((x-mean(x))/sd(x))^3)
+getMat <- function(n) matrix(runif(1000*n), n, 1000)
+qSkew <- function(q, x) skew(apply(x, 2, function(y) quantile(y, q)))
+
+ns <- c(5, 20, 100, 500, 2000)
+qs <- seq(0,1,0.01)
+
+weks <- t(sapply(qs, function(q) sapply(lapply(ns, getMat), function(x) qSkew(q, x))))
+
+lapply(1:length(ns), function(i) plot(qs, weks[,i]))
+```
+
+For every $n$, the skewness is decreasing in the quantile. For smaller sample sizes, the rate of decrease is relatively smooth, whereas for larger sample sizes the curvature is greater, to the point that for large samples most quantiles are not very skewed except the min and max.
+
+### Part b
+
+```{r}
+conf <- 0.999
+x <- rnorm(10^4)
+z <- rnorm(10^4, x)
+ys <- lapply(c(1,5,20,100), function(a) rnorm(10^4, x+2*z-a*x*z))
+lapply(ys, function(y) confint(lm(y ~ x+z), 2, conf))
+lapply(ys, function(y) confint(lm(y ~ x*z), 2, conf))
+```
+
+All the intervals contain the true $\beta$ (it turns out the confidence interval coverage rate isn't bad even for the wrong model), but for the misspecified model (no interactions) the stronger the misspecification the wider the intervals (which is bad--we want to be confident about a short interval). For the correct model, the intervals are all the same width, approximately.
+
+## Question 2
+
+### Part a
+
+```{r}
+satMod1 <- lm(FYGPA ~ SATSum, data = sat %>% filter(sex == 0))
+satMod2 <- lm(FYGPA ~ HSGPA, data = sat %>% filter(sex == 0))
+sigma(satMod1)
+sigma(satMod2)
+satFemale <- sat %>% filter(sex == 1)
+rmse(satFemale$FYGPA,predict(satMod1, satFemale))
+rmse(satFemale$FYGPA,predict(satMod2, satFemale))
+```
+
+The two models have a very similar quality of fit to the data, but the RMSE is notably lower (better) for the model that predicts with HS GPA. Thus, the relationship between HSGPA and college GPA generalizes better than that between SAT and college GPA.
+
+### Part b
+
+```{r}
+n <- dim(sat)[1]
+# indices <- sample(n)
+indices <- 1:n
+nTrain <- floor(1/2*n)
+train <- sat[indices[1:nTrain],]
+test <- sat[indices[(nTrain+1):n],]
+satMod1t <- lm(FYGPA ~ SATSum, data = train)
+satMod2t <- lm(FYGPA ~ HSGPA, data = train)
+rmse(test$FYGPA,predict(satMod1t, test))
+rmse(test$FYGPA,predict(satMod2t, test))
+```
+
+It's generally a bit lower. This is because we're not extrapolating (fitting the model to a relationship in one population--male students--and testing it in another). Rather, we're training and testing within the same population (all students).
+
+## Question 3
+
+### Part a
+
+```{r}
+covid %>%
+  filter(Admin2 == 'San Francisco',
+         Case_Type == 'Confirmed',
+         Cases > 0,
+         Date < '2020-04-01',
+         Date >= '2020-03-01') %>%
+  select(Cases, Date) %>%
+  arrange(Date) ->
+  sf
+
+covid %>%
+  filter(Admin2 == 'San Francisco',
+         Case_Type == 'Confirmed',
+         Cases > 0,
+         Date >= '2020-04-01',
+         Date <= '2020-04-07') %>%
+  select(Cases, Date) %>%
+  arrange(Date) ->
+  sfApr
+
+sf$logCases <- log(sf$Cases)
+sfApr$logCases <- log(sfApr$Cases)
+nSF <- dim(sf)[1]
+
+sfMods <- lapply(1:5, function(p) lm(logCases ~ poly(Date,p), data = sf))
+sapply(sfMods, sigma)
+sapply(1:5, function(i) sqrt(1/(nSF - (1+i))*sum((sfApr$Cases - predict(sfMods[[i]], sfApr))^2)))
+sapply(sfMods, function(mod) rmse(sfApr$logCases, predict(mod, sfApr)))
+sapply(sfMods, function(mod) rmse(sfApr$Cases, exp(predict(mod, sfApr))))
+```
+
+The Residual Standard Error is decreasing in $p$ on the log scale, but increasing in $p$ on the original scale(!!!) so the best fit on the log scale is $p=5$ but on the original scale $p=1$. For prediction, however, the quadratic model is best on both scales. By this point, you shouldn't be surprised--complex models can be terrible at extrapolation, but the simplest model is often too simple and could be improved.
+
+### Part b
+
+```{r}
+squaredLoss <- function(y, yhat) (y-yhat)^2
+sigma(sfMods[[3]])
+sqrt(1/(nSF-4)*sum(squaredLoss(sf$logCases, predict(sfMods[[3]]))))
+```
+
+### Part c
+
+```{r}
+asymmetricLoss <- function(y,yhat) (y>yhat)*4*(y-yhat)^2 + (y<yhat)*(y-yhat)^2
+lapply(sfMods, function(mod) sqrt(mean(asymmetricLoss(sfApr$logCases,
+                                                      predict(mod, sfApr)))))
+lapply(sfMods, function(mod) sqrt(mean(asymmetricLoss(sfApr$Cases,
+                                                      exp(predict(mod, sfApr))))))
+```
+
+Best model same as part (a). Only model 4 ever under-predicts, interestingly.
+
+### Part d
+
+You'd add an argument lossFunc, and then the function you'd minimize wouldn't be the sum of (y-yhat)^2, but rather sum(lossFunc(y,yhat)).
+
+### Part e
+
+Consider two estimates of the true quantity y, yhatU (underestimate) and yhatO (overestimate). Suppose y-yhatU = q and y-yhatO = -q. Then (exp(y) - exp(yhatU))^2 < (exp(y) - exp(yhatO)^2 because the 2nd derivative of exp is positive (the negative residual gets "blown up"). So a larger-magnitude negative residual (on the original scale) yields the same loss (on the log scale) as a smaller-magnitude positive residual (on the original scale).
+
+Thus underestimates on the original scale are penalized more. However, this means overestimates are penalized more on the log scale, where the optimization happens, which is inappropriate because underestimating COVID-19 cases is worse than overestimating them (better overstate the seriousness of the situation than understate it).
+
+(This was not an easy question. It's okay if this is confusing.)
