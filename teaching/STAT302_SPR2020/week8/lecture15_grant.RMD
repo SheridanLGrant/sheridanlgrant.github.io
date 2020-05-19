@@ -1,0 +1,179 @@
+---
+title: "STAT 302 SPR2020 Lecture 15"
+author: "Sheridan Grant"
+date: "May 18, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+Libraries:
+```{r}
+library(tidyverse)
+```
+
+## Tidyverse: Reading Data
+
+SAT data: old way
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)  # ew what is in the first column name???
+colnames(sat)[1] <- 'sex'
+sat$sex <- factor(sat$sex - 1)  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+```
+
+SAT data: new way
+```{r}
+sat <- read_csv('../data/sat.csv')
+sat %>% head()  # that weird i-umlaut thing is gone!
+sat$sex <- factor(sat$sex - 1)  # 0/1 is conventional, data gives 1/2
+n <- dim(sat)[1]
+head(sat)
+```
+
+COVID-19
+```{r}
+covid <- read_csv("../data/coronavirus.csv")
+head(covid)  # hmmm it had some problems, but we can fix them
+
+covid <- read_csv("../data/coronavirus.csv",
+                  col_types = cols(Admin2 = col_character(),
+                                   Date = col_date('%m/%d/%Y')))
+head(covid)  # first colname correct already, date already good to go
+```
+
+## Tidy Data: Experimental Units and Variables
+
+In a statistical analysis, you *always* want your data organized so that every row of the table is an *observation* of an experimental unit and each column is a different variable. Now we'll see why, using the COVID-19 data.
+
+Suppose I wanted to estimate the Infection Fatality Rate (IFR) for coronavirus, over time. I need the number of deaths divided by the number of confirmed cases.
+```{r}
+covid %>%
+  filter(Country_Region == 'US') %>%
+  select(Case_Type, Cases, Date, Country_Region, Province_State, Admin2) ->
+  usa
+
+head(usa %>% filter(Case_Type == 'Deaths'))
+head(usa %>% filter(Case_Type == 'Confirmed'))
+```
+
+Well this will be a hassle! We'll have to match on Date, Country_Region, Province_State, Admin2. The problem is that the data aren't organized with units of observation in rows and variables in columns, and the culprit is the Case_Type. Units of observation are locations on a given date, and variables of interest are confirmed cases and deaths. We need to "spread" the Case_Type variable into columns, with the values being the number of cases:
+```{r}
+usa %>%
+  spread(Case_Type, Cases) ->
+  usa
+head(usa)
+```
+
+Problem solved! Now we can estimate the IFR:
+```{r}
+usa %>%
+  mutate(IFR0 = Deaths/Confirmed) ->
+  usa
+tail(usa)
+
+king <- usa %>%
+  filter(Province_State == 'Washington', Admin2 == 'King')
+```
+
+(In class, we'll discuss some problems with this estimate.)
+
+## Tidy Plotting: ggplot2
+
+All the plots I've shown you so far in this class have been made with "Base R." They are rudimentary-looking, but they're simple-looking (a good thing) and easy to write code for. However, you will often find you can't make the plot you want in Base R. ggplot2 is the state of the art. It is difficult to learn and (I find) *impossible* to memorize, but you can do *anything* with it. Let's plot King County's IFR0 over time:
+```{r}
+ggplot(data = king) +
+  geom_line(mapping = aes(x = Date, y = IFR0))
+```
+
+What happened here? (Discuss in class.)
+
+Unfortunately, there are a billion ways to do the same exact thing in ggplot.
+```{r}
+ggplot(data = king,
+       mapping = aes(x = Date, y = IFR0)) +
+  geom_line() +
+  geom_point()
+```
+
+**No need to memorize this:** if you do the latter, everything in the plot will assume x = Date and y = IFR0. If you do the former, you have more flexibility:
+```{r}
+ggplot(data = king) +
+  geom_line(mapping = aes(x = Date, y = Confirmed)) +
+  geom_line(mapping = aes(x = Date, y = Deaths))
+```
+
+But this is hella ugly and needs a lot of work.
+```{r}
+ggplot(data = king) +
+  geom_line(mapping = aes(x = Date, y = Confirmed), color = 'red') +
+  geom_line(mapping = aes(x = Date, y = Deaths), color = 'blue') +
+  ylab('Count') +
+  ggtitle('King County COVID-19 Impact')
+```
+
+### Legends
+
+We're missing a legend. Unfortunately, the usual legend-creating commands won't work:
+```{r}
+ggplot(data = king) +
+  geom_line(mapping = aes(x = Date, y = Confirmed), color = 'red') +
+  geom_line(mapping = aes(x = Date, y = Deaths), color = 'blue') +
+  ylab('Count') +
+  ggtitle('King County COVID-19 Impact') +
+  scale_color_manual("",
+                     values = c('red', 'blue'),
+                     labels = c('Confirmed Cases','Deaths'))
+```
+
+The way you fix this is to make the color part of the "aesthetic"--once we move it inside the aes() call, then it works. The only way to get this right is practice, or to Google it every time (like I do!).
+```{r}
+ggplot(data = king) +
+  geom_line(mapping = aes(x = Date, y = Confirmed, color = 'red')) +
+  geom_line(mapping = aes(x = Date, y = Deaths, color = 'blue')) +
+  ylab('Count') +
+  ggtitle('King County COVID-19 Impact') +
+  scale_color_manual("",
+                     values = c('red', 'blue'),
+                     labels = c('Deaths', 'Confirmed Cases'))
+```
+
+Here's the Base R equivalent:
+```{r}
+plot(king$Date, king$Confirmed,
+     col = 'red', type = 'l',
+     ylab = 'Cases', xlab = 'Date',
+     main = 'King County COVID-19 Impact')
+lines(king$Date, king$Deaths, col = 'blue')
+legend(18283, 4000,
+       legend = c('Confirmed Cases', 'Deaths'),
+       fill = c('red', 'blue'))
+```
+
+You can see why I prefer Base R for simple plotting tasks like this. The ggplot style of building up the plot layer-by-layer generalizes well, but can be unnecessarily complicated.
+
+### Multivariate Plots
+
+It's not always easy to do what you want with Base R, though. Here's another example to give a feel for how aes() works:
+```{r}
+ggplot(data = usa %>% filter(Province_State == 'Washington'),
+       mapping = aes(x = Date, y = Confirmed, color = Admin2)) +
+  geom_line()
+```
+
+You could do this in Base R by for looping through the different counties and calling lines(), but clearly ggplot is easier and more intuitive than that.
+
+Turns out we can leverage this to fix the problem from before, but only if we put the data back in the "wrong" format. (?!?!)
+```{r}
+kingLong <- king %>% gather(`Confirmed`, `Deaths`,
+                            key = 'Case_Type', value = 'Cases')
+
+head(kingLong)
+ggplot(data = kingLong,
+       mapping = aes(x = Date, y = Cases, color = Case_Type)) +
+  geom_line()
+```
+
