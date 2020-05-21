@@ -1,0 +1,215 @@
+---
+title: "STAT 302 SPR2020 Homework 7 Graded Solution"
+author: "Sheridan Grant"
+date: "5/18/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+library(tidyverse)
+```
+
+Read the SAT data:
+```{r}
+sat <- read.csv('../data/sat.csv')
+colnames(sat)[1] <- 'sex'
+colnames(sat)
+sat$sex <- sat$sex - 1  # 0/1 encoding
+```
+
+...and COVID-19 data:
+```{r}
+covid <- read.csv("../data/coronavirus.csv")
+colnames(covid)[1] <- 'Case_Type'
+colnames(covid)
+covid$Date <- as.Date(covid$Date, format = '%m/%d/%Y')
+```
+
+...and voting data:
+```{r}
+votes115 <- read_csv('../data/S115_votes.csv')
+members115 <- read_csv('../data/S115_members.csv')
+joint115 <- inner_join(votes115, members115,
+                       by = 'icpsr')  # link records on senator ID
+joint115 %>% filter(!is.na(nominate_dim1), !is.na(nominate_dim2)) -> joint115
+joint115 <- joint115 %>% filter(cast_code %in% c(1,6),
+                                party_code %in% c(100,200))
+joint115$party <- ifelse(joint115$party_code == 100, 'D', 'R')
+joint115$yay <- (joint115$cast_code == 1)
+```
+
+Helper functions:
+```{r}
+# e^x/(e^x+1) for input x
+expit <- function(x) exp(x)/(exp(x) + 1)
+
+# root mean squared error for true y and prediction yhat
+rmse <- function(y,yhat) sqrt(mean((y-yhat)^2))
+
+# mean absolute error for true y and prediction yhat
+mae <- function(y,yhat) mean(abs(y-yhat))
+
+# accuracy for predictions yhat and true binary outcome y
+acc <- function(y, yhat) mean(y == yhat)
+```
+
+## Question 1
+
+### Part a
+
+```{r}
+x <- rnorm(100)
+x <- (x-mean(x))/sd(x)
+out <- cbind(x, x+1, x+2)
+apply(out, 1, sd)
+apply(out, 2, sd)
+write.csv(out, 'tricky.csv')
+```
+
+### Part b
+
+Setup
+```{r}
+covid %>%
+  filter(Admin2 == 'San Francisco',
+         Case_Type == 'Confirmed',
+         Cases > 0,
+         Date < '2020-04-01',
+         Date >= '2020-03-01') %>%
+  select(Cases, Date) %>%
+  arrange(Date) ->
+  sf
+
+covid %>%
+  filter(Admin2 == 'San Francisco',
+         Case_Type == 'Confirmed',
+         Cases > 0,
+         Date == '2020-04-01') %>%
+  select(Cases, Date) %>%
+  arrange(Date) ->
+  sfApr
+```
+
+Poisson regression
+```{r}
+poisMod <- glm(Cases ~ Date, data = sf, family = 'poisson')
+predict(poisMod, sfApr, type = 'response')
+sfApr
+```
+
+Prediction's much closer. This is because Poisson regression handles the nonlinearity of the log scale much better than linear regression with a log transform. Poisson is appropriate because it takes non-negative integer values, just like the number of COVID-19 cases does (among other reasons).
+
+### Part c
+
+```{r}
+sum((1:1)^3)
+sum((1:2)^3)
+sum((1:3)^3)
+sum((1:4)^3)
+```
+
+Aha, $1^2,3^2,6^2,10^2$! For full credit, you need something like this:
+```{r}
+sumN3 <- function(n) choose(n+1,2)^2
+sapply(1:4, sumN3)
+```
+
+We'll give [2pts] for this:
+```{r}
+sumN3 <- function(n) sum(1:n)^2
+sapply(1:4, sumN3)
+```
+
+## Question 2
+
+### Part a
+
+```{r}
+linMod <- lm(SATSum ~ HSGPA, data = sat)
+
+inRange <- function(x) x <= 85 | x >= 115
+sat$admit <- inRange(sat$SATSum)
+logitMod <- glm(admit ~ poly(HSGPA,2), data = sat, family = 'binomial')
+coef(linMod)
+coef(logitMod)
+```
+
+An increase of 1 point in HS GPA is associated with an 11.4 point SAT score increase. No interpretation of logistic regression needed here.
+
+### Part b
+
+```{r}
+nSAT <- dim(sat)[1]
+randInd <- sample(nSAT)
+train <- sat[randInd[1:400],]
+validate <- sat[randInd[401:800],]
+test <- sat[randInd[801:nSAT],]
+```
+
+```{r}
+linMods <- lapply(1:3, function(p) lm(SATSum ~ poly(HSGPA, p), data = sat))
+lapply(linMods, function(mod) acc(validate$admit, inRange(predict(mod, validate))))
+lapply(linMods, function(mod) mean(inRange(predict(mod, validate))))
+```
+
+All equivalent accuracy, because they all predict "no admit" for most students
+
+### Part c
+
+```{r}
+f1 <- function(x) x > 0.5
+f2 <- function(x) x > 0.7
+f3 <- function(x) x < 0.4
+```
+
+```{r}
+logitModTrain <- glm(admit ~ poly(HSGPA,2), data = train, family = 'binomial')
+acc(validate$admit, f1(predict(logitModTrain, validate, type = 'response')))
+acc(validate$admit, f2(predict(logitModTrain, validate, type = 'response')))
+acc(validate$admit, f3(predict(logitModTrain, validate, type = 'response')))
+```
+
+The assignment wasn't clear that you needed to train this model on the training data, so if students used the full data set for training we will award credit *on this part only*. $f^1$ appears best, and is slightly better than the hacked linear models. Students will tend to get different answers due to randomness in train/test/validation split, so we should just check that the accuracy check is correctly coded and the written response makes sense.
+
+### Part d
+
+```{r}
+acc(test$admit, f1(predict(logitModTrain, test, type = 'response')))
+acc(test$admit, inRange(predict(linMods[[1]], test)))
+```
+
+Basically the same. We can't measure predictive power on the same data we fit the model to, so we have to do a split. We actually need a 3-way split, because picking the best linear model or best $f^i$ is another step of the model fitting and selection process, so we need a third set to evaluate the best of each type of model independently of the data used to train the models and select the best of each type.
+
+## Question 3
+
+### Part a
+
+```{r}
+dim(joint115)
+```
+
+### Part b
+
+```{r}
+stateMod <- glm(yay ~ state_abbrev, data = joint115, family = 'binomial')
+coefs <- coef(stateMod)
+senateProbsGLM <- expit(c(coefs[1], coefs[2:50]+coefs[1]))
+senateProbsTab <- joint115 %>% group_by(state_abbrev) %>% summarize(yays = mean(yay))
+senateProbsGLM
+senateProbsTab
+```
+
+### Part c
+
+```{r}
+nomMod <- glm(yay ~ nominate_dim1 + nominate_dim2, 
+              data = joint115, family = 'binomial')
+coef(nomMod)
+expit(c(1,-0.5,0)%*%coef(nomMod))
+```
+
+1 point increase in NOMINATE dimension 1 (strong swing rightwards in ideology) is associated with a 1.8 point increase in log-odds of voting "yay." Taking the log of the odds is the same as taking the logit of p! Center-left senator's estimated "yay" probability is 0.45.

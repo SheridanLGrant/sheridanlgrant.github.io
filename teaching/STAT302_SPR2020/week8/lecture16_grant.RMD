@@ -1,0 +1,290 @@
+---
+title: "STAT 302 SPR2020 Lecture 15"
+author: "Sheridan Grant"
+date: "May 18, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+Libraries:
+```{r}
+library(tidyverse)
+```
+
+Read SAT data, Tidy way
+```{r}
+sat <- read_csv('../data/sat.csv')
+sat %>% head()  # that weird i-umlaut thing is gone!
+sat$sex <- ifelse(sat$sex == 1, 'male', 'female')
+n <- dim(sat)[1]
+head(sat)
+```
+
+COVID-19
+```{r}
+covid <- read_csv("../data/coronavirus.csv",
+                  col_types = cols(Admin2 = col_character(),
+                                   Date = col_date('%m/%d/%Y')))
+head(covid)  # first colname correct already, date already good to go
+```
+
+## ggplot, cont'd
+
+### Multivariate plots
+
+Last class, we saw how to use the "color" aesthetic to display more than two variables on a plot.
+
+Chat Q1: what goes wrong here? How can I fix it?
+```{r}
+ggplot(sat) +
+  geom_point(mapping = aes(x = HSGPA, y = FYGPA), color = 'blue', size = 1)
+```
+
+We can use transformations of variables, just as we commonly did with dplyr
+```{r}
+ggplot(sat) +
+  geom_point(aes(HSGPA, FYGPA, color = SATSum < 100))
+
+ggplot(sat) +
+  geom_point(aes(HSGPA, FYGPA, color = SATSum < 100), show.legend = F)
+```
+
+Can convey information with more than just color
+```{r}
+ggplot(sat) +
+  geom_point(aes(HSGPA, FYGPA, alpha = SATSum/200))
+```
+
+```{r}
+ggplot(sat) +
+  geom_point(aes(HSGPA, FYGPA, size = SATSum))
+```
+
+What is misleading about the above plot?
+
+```{r}
+ggplot(sat) +
+  geom_jitter(aes(HSGPA, FYGPA, alpha = SATSum/200))
+
+plot(jitter(sat$HSGPA,5), jitter(sat$FYGPA,5))
+plot(sat$HSGPA, sat$FYGPA)
+```
+
+#### Facets
+
+Dunno why these are called this, but whatever. Pretty clear what they do:
+
+```{r}
+ggplot(sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth() + geom_point() +
+  facet_wrap(~sex)
+```
+
+These curves are known colloquially as "smoothers." They are designed to show trends in observed data rather than predict on new data. I don't ever use them.
+
+```{r}
+ggplot(sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth() + geom_point() +
+  facet_grid(sex ~ SATSum)
+```
+
+Whoops... best stick to factors!
+
+```{r}
+ggplot(sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth() + geom_point() +
+  facet_grid(sex ~ SATSum > 100)
+```
+
+Check out that bottom left panel, right-hand side! These smoothing curves are *terrible* predictors.
+
+### Advanced Aesthetics
+
+```{r}
+ggplot(sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_point() +
+  geom_smooth(aes(group = SATSum > 120))
+```
+
+A different approach that makes labeling easy:
+```{r}
+ggplot(sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_point() +
+  geom_smooth(aes(color = SATSum > 120))
+```
+
+Some geoms have extra aesthetics that do cool things like this. Of course, this can be done with a bit more typing without knowing about "group":
+```{r}
+ggplot(sat) +
+  geom_point(mapping = aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth(data = sat %>% filter(SATSum > 120), aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth(data = sat %>% filter(SATSum <= 120), aes(x = HSGPA, y = FYGPA))
+```
+
+In fact, you can specify the data and aesthetic mapping for each layer totally separately:
+
+```{r}
+ggplot() +
+  geom_point(data = sat, aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth(data = sat %>% filter(SATSum > 120), aes(x = HSGPA, y = FYGPA)) +
+  geom_smooth(data = sat %>% filter(SATSum <= 120), aes(x = HSGPA, y = FYGPA))
+```
+
+But woe unto you if you use this without thinking:
+```{r}
+ggplot(sat) +
+  geom_point(aes(x = sex, y = SATSum)) +
+  geom_smooth(aes(x = HSGPA, y = FYGPA))
+```
+
+### Plotting Statistics
+
+A *statistic* is a function of the data, like the sample mean or empirical skewness.
+
+```{r}
+sat$satGroup <- (sat$SATSum < 55) + (sat$SATSum < 70) + (sat$SATSum < 85) + (sat$SATSum < 100) + (sat$SATSum < 115) + (sat$SATSum < 130) + (sat$SATSum < 145) + (sat$SATSum <= 160)
+
+sat$satGroup <- factor(sat$satGroup, levels = 1:8)
+ggplot(sat) +
+  geom_bar(aes(x = satGroup))
+
+sat %>% count(satGroup)
+```
+
+Of course, what we're really looking for is
+```{r}
+ggplot(sat) + geom_histogram(aes(x = SATSum))
+```
+
+...these kids must've been cheating like mad!
+
+### Advanced Multivariate Plots
+
+Bar chart from earlier
+```{r}
+ggplot(sat) + geom_bar(aes(x = satGroup, color = HSGPA > 3))
+```
+
+Hideous. We need "fill":
+```{r}
+ggplot(sat) + geom_bar(aes(x = satGroup, fill = HSGPA > 3))
+```
+
+or position = 'dodge':
+```{r}
+ggplot(sat) + geom_bar(aes(x = satGroup, fill = HSGPA > 3), position = 'dodge')
+```
+
+Or just use faceting. Then you don't get the misleading double-wide bars in groups 7 and 8.
+```{r}
+ggplot(sat) +
+  geom_bar(aes(x = HSGPA > 3)) +
+  facet_wrap(~ satGroup, nrow = 2)
+```
+
+## Selected Other Data Science Skills
+
+### User Input
+
+When writing software, especially to be used by folks who don't code, it can be useful to ask for user input. Like:
+```{r}
+cat('Name is:', readline('What name?'))
+```
+
+Handy! Or:
+```{r}
+mySquare <- function() {
+  x <- readline('input number you wanna square')
+  x <- as.numeric(x)
+  x^2
+}
+mySquare()
+```
+
+What if the user wants to input multiple numbers?
+```{r}
+mySquare <- function() {
+  x <- readline('input numbers you wanna square, separated by commas: ')
+  x <- as.numeric(unlist(strsplit(x, ',')))
+  x^2
+}
+mySquare()
+```
+
+...unlist? strsplit?
+```{r}
+x <- c('1, 2, 3')
+strsplit(x, ',')
+unlist(strsplit(x, ','))
+unlist(list(1,2,3))
+```
+
+### stringr
+
+If your final project includes text data, you may need to manipulate it programmatically. This can be a hassle, but Tidyverse's stringr is here to help.
+
+Concatenate (character) strings like "+" in Python:
+```{r}
+str_c('Sheridan', 'Lloyd', 'Grant')
+str_c('Sheridan', 'Lloyd', 'Grant', sep = ' ')
+```
+
+Vectorized:
+```{r}
+x <- c('Sheridan Grant', 'General Kenobi')
+str_c('Hello there, ', x, '!')[2]  # I know I butchered the actual quote don't @ me
+str_c(x, rev(x), 1:4)  # wild
+```
+
+Collapsing:
+```{r}
+str_c(rep(x, 2), collapse = ' admires ')  # a classic bromance
+```
+
+Trimming:
+```{r}
+str_trim('   Have you heard the story?   ', side = 'left')
+str_trim('   Have you heard the story?   ', side = 'right')
+str_trim('   Have you heard the story?   ', side = 'both')
+str_squish('   Have    you       heard      the      story?   ')
+```
+
+Subsetting:
+```{r}
+str_sub(x, 3)
+str_sub(x, -3)
+str_sub(x, 3, 12)
+str_sub(x, 3, -3)
+```
+
+
+### Regular Expressions
+
+You may have seen '\n' in my solutions, particularly when I use cat:
+```{r}
+cat('Name is:', readline('Name? '), '\n',
+    'Fav number is:', readline('Fav number? '))
+```
+
+This is interpreted as a newline, even though I didn't type a newline! '\n' is a regular expression, or regex.
+
+Basic pattern matching:
+```{r}
+x <- c(x, 'Hello there.', 'What about the droid attack on the wookies?')
+str_view(x, 'er')
+str_view_all(x, '. .')  #'.' is a regex for "any single character"
+str_view(x, '\.')  # This doesn't work because backlash is itself a character
+str_view(x, '\\.')  # 'Double escape'
+str_view(x, '^G')  # ^ anchors to beginning
+str_view(x, 't$')  # $ anchors to end
+```
+
+How to actually use it in code?
+```{r}
+str_detect(x, 'er')
+str_detect(x, '\\.')
+```
+
