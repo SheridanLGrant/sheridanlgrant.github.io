@@ -1,0 +1,110 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1.25in]{geometry}
+\usepackage{graphicx}
+\graphicspath{{../charts/}}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage[shortlabels]{enumitem}
+\usepackage{color}
+\usepackage{listings}
+\lstset{breaklines=true}
+\usepackage{appendix}
+\usepackage[colorlinks]{hyperref}
+\usepackage{subcaption}
+\usepackage{placeins}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\Prob}{\text{P}}
+\newcommand{\E}{\text{E}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\sd}{\text{sd}}
+\newcommand{\KL}{\text{KL}}
+\newcommand{\I}{\text{I}}
+
+\newcommand{\Norm}{\text{N}}
+\newcommand{\Unif}{\text{U}}
+\newcommand{\Pois}{\text{Pois}}
+\newcommand{\Cauchy}{\text{Cauchy}}
+\newcommand{\Laplace}{\text{LaPlace}}
+\newcommand{\Binom}{\text{Binom}}
+
+\newcommand{\Ind}{\textbf{1}}
+\newcommand{\sign}{\text{sign}}
+\newcommand{\Mod}[1]{\ (\mathrm{mod}\ #1)}
+\newcommand{\indep}{\rotatebox[origin=c]{90}{$\models$}}
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+
+\newcommand{\Rr}{\mathbb{R}}
+\newcommand{\Ff}{\mathbb{F}}
+\newcommand{\Pp}{\mathbb{P}}
+\newcommand{\Qq}{\mathbb{Q}}
+
+\newcommand{\logit}{\text{logit}}
+\newcommand{\expit}{\text{expit}}
+
+\newcommand{\Ascript}{\mathcal{A}}
+\newcommand{\Gscript}{\mathcal{G}}
+\newcommand{\Rscript}{\mathcal{R}}
+\newcommand{\Hscript}{\mathcal{H}}
+\newcommand{\Xscript}{\mathcal{X}}
+\newcommand{\Yscript}{\mathcal{Y}}
+\newcommand{\Oscript}{\mathcal{O}}
+\newcommand{\Pscript}{\mathcal{P}}
+\newcommand{\Mscript}{\mathcal{M}}
+
+\title{STAT 302 Final Project}
+\author{Sheridan Grant}
+\date{Report due on Canvas \textbf{Wednesday, June 10th at 11:59am---zero exceptions} (I often let late homework slide, but not this). Verbal assessments will be during the final exam period \textbf{2:30-4:20 Thursday, June 11th}, with exceptions made for students in other time zones. Scheduling TBD.}
+
+\begin{document}\sloppy
+
+\maketitle
+
+\section*{Submission Instructions}
+
+You will write your report via R Markdown, so you will submit a zipped folder with the .RMD file, knitted HTML, and any other files needed to compile your HTML \textbf{up to 100 MB total}. If your data is huge, provide instructions for accessing it online in the .RMD file.
+
+The writing and code should flow naturally with one another. You can ``hide'' code chunks that don't demonstrate anything useful.
+
+\section*{Grading Breakdown}
+
+\begin{enumerate}
+	\item 20\% Verbal Assessment
+	\begin{enumerate}[(a)]
+		\item 5-6 min if alone, 7-9 min with partner
+		\item Be able to defend what you did in your report. I'm not going to ask you to produce any new math or analysis. I may ask you general questions about how you might change or extend something.
+	\end{enumerate}
+	\item 30\% Modeling and Hypothesis Testing
+	\begin{enumerate}
+		\item Used 1 type of regression model from class (linear model, linear with transformed covariates or outcome, logistic regression) and 1 new type (Random Forest, Neural Network, Poisson GLM, ANOVA, time series AR, etc.).
+		\item Stated model/test assumptions and addressed their plausibility.
+		\item Interpreted models correctly, assessed predictive performance.
+		\item Scientific hypotheses are substantive, practical, and well-formulated. ``Are any of these variables correlated with the outcome'' earns less points than ``is there an interaction effect between these two covariates in explaining the outcome.''
+	\end{enumerate}
+	\item 15\% Visualization and exploratory analysis
+	\begin{enumerate}
+		\item Plots and tables are clearly labeled and formatted well.
+		\item Plots and tables convey the crucial information about relationships in the data to the reader.
+	\end{enumerate}
+	\item 20\% Writing
+	\begin{enumerate}
+		\item English writing ability will not be graded beyond the standard of conveying information unambiguously.
+		\item 500-700 words if alone, 700-1000 if working with a partner. ``Words'' applies to all text written outside of .RMD code chunks. Within the bounds of word limits, better writing is better than more words. 525 words clearly written is better than 650 words written less well.
+		\item Writing should address the scientific issues and modeling primarily, and the practical importance of your work briefly.
+	\end{enumerate}
+	\item 15\% Code
+	\begin{enumerate}
+		\item Correctness.
+		\item Readability (as I grade your work, I should be able to fairly quickly read through your code and see what you're doing, even if some of the details are harder to understand).
+		\item Formatting and commenting. If you write your own function, or do something complicated, write a code comment to briefly explain.
+	\end{enumerate}
+\end{enumerate}
+
+\end{document}
