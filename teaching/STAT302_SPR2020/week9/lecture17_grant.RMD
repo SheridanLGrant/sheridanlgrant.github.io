@@ -1,0 +1,165 @@
+---
+title: "STAT 302 SPR2020 Lecture 17"
+author: "Sheridan Grant"
+date: "May 27, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+Libraries:
+```{r}
+library(tidyverse)
+```
+
+COVID-19
+```{r}
+covid <- read_csv("../data/coronavirus.csv",
+                  col_types = cols(Admin2 = col_character(),
+                                   Date = col_date('%m/%d/%Y')))
+head(covid)  # first colname correct already, date already good to go
+```
+
+
+## Huge Data
+
+Brief demonstration of data.table, as some of you have big data for your final project:
+```{r}
+library(data.table)
+slowQuora <- read_csv('../data/quora.csv')
+fastQuora <- fread('../data/quora.csv')  # woah
+slowQuora %>% arrange(qid) -> slowQuora
+fastQuora %>% setorder('qid')  # faster AND uses less memory by not copying
+```
+
+## stringr
+
+If your final project includes text data like the Quora data, you may need to manipulate it programmatically. This can be a hassle, but Tidyverse's stringr is here to help.
+
+Concatenate (character) strings like "+" in Python:
+```{r}
+str_c('Sheridan', 'Lloyd', 'Grant')
+str_c('Sheridan', 'Lloyd', 'Grant', sep = ' ')
+```
+
+Vectorized:
+```{r}
+x <- c('Sheridan Grant', 'General Kenobi')
+str_c('Hello there, ', x, '!')[2]  # I know I butchered the actual quote don't @ me
+str_c(x, rev(x), 1:4)
+```
+
+Collapsing:
+```{r}
+str_c(rep(x, 2), collapse = ' admires ')  # a classic bromance
+```
+
+Trimming:
+```{r}
+str_trim('   Have you heard the story?   ', side = 'left')
+str_trim('   Have you heard the story?   ', side = 'right')
+str_trim('   Have you heard the story?   ', side = 'both')
+str_squish('   Have    you       heard      the      story?   ')
+```
+
+Subsetting:
+```{r}
+str_sub(x, 3)
+str_sub(x, -3)
+str_sub(x, 3, 12)
+str_sub(x, 3, -3)
+```
+
+Chat Q1: can I always rewrite str_sub(x, a, b) as str_sub(x, a, -c)?
+```{r}
+y <- c('hi', 'hey')
+str_sub(y, 1, 2)
+str_sub(y, 1, -2)
+```
+
+### Regular Expressions
+
+You may have seen '\n' in my solutions, particularly when I use cat:
+```{r}
+cat('Name is:', readline('Name? '), '\n',
+    'Fav number is:', readline('Fav number? '))
+```
+
+This is interpreted as a newline, even though I didn't type a newline! '\n' is a regular expression, or regex.
+
+Basic pattern matching:
+```{r}
+x <- c(x, 'Hello there.', 'What about the droid attack on the wookies?')
+str_view(x, 'er')
+str_view_all(x, '. .')  #'.' is a regex for "any single character"
+str_view(x, '\.')  # This doesn't work because backlash is itself a character
+str_view(x, '\\.')  # 'Double escape'
+str_view(x, '^G')  # ^ anchors to beginning
+str_view(x, 't$')  # $ anchors to end
+```
+
+How to actually use it in code?
+```{r}
+str_detect(x, 'er')
+str_detect(x, '\\.')
+```
+
+Email Q1: email me a line of code that determines if a string x begins with x, y, or z.
+
+### Country Search
+
+Identifying countries
+```{r}
+covid$Country_Region %>% unique() -> country
+country %>% str_detect('Republic') %>% sum()
+country %>% str_subset('Republic')
+country %>% str_extract('.*. .*')
+country %>% str_subset('z')
+country %>% str_subset('(?i)[z]')  # I just Googled "case insensitive"
+country %>% str_subset("\\([^()]+\\)")  # Oops--Republic of the Congo vs. DRC
+country %>% str_subset('e{2,}|o{2,}')  # Runs of at least 2 letters
+```
+
+### Quora Troll Identification
+
+Help Quora flag troll questions. (Machine learning aside.)
+Email Q2: email me another real-world example in which humans "labeling" a binary outcome may be mistaken or biased.
+```{r}
+mean(fastQuora$target)
+```
+
+6% troll questions. Are questions about vaccines more likely to be trolling?
+
+```{r}
+mean(fastQuora[str_detect(question_text, '(?i)vaccin'),'target'][[1]])
+```
+
+OH yes. How 'bout ones that include the word "autism" or "autistic" as well?
+
+```{r}
+fastQuora[str_detect(question_text, '(?i)vaccine.*autis|autis.*vaccine'),]$target %>% mean()
+```
+
+Aha! How'd this work? '.' stands for any character, '*' for "0 or more repetitions" so ".*" for as many characters between the two words as we want!
+
+Chat Q2: what's an easier way to check for the presence of both these words? One that doesn't require you to know '.' or '*'?
+
+Email Q3: find a regex that checks if an email address is valid, and email it to me. It's okay if it takes more than 1 line in the email.
+
+Chat Q2 answer:
+```{r}
+fastQuora %>% 
+  filter(str_detect(question_text, '(?i)vaccine'),
+                     str_detect(question_text, '(?i)autis')) %>%
+  summarize(percentTroll = mean(target))
+```
+
+Chat Q3: let's find all the questions with more than one question mark in a row. Submit a regex in the chat, I'll test some of 'em without saying who sent it.
+
+```{r}
+fastQuora[str_detect(question_text, '\\?{2,}'),]$target %>% mean()
+```
+
+Breakout: how many of these questions mention at least one US state? Hints: R has a built-in list of states, str_detect is vectorized in both arguments.
