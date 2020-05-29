@@ -1,0 +1,109 @@
+---
+title: "STAT 302 SPR2020 Homework 8 Graded Solution"
+author: "Sheridan Grant"
+date: "5/26/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+library(tidyverse)
+```
+
+Read the COVID-19 data:
+```{r, warning=F}
+covid <- read_csv("../data/coronavirus.csv",
+                  col_types = cols(Admin2 = col_character(),
+                                   Date = col_date('%m/%d/%Y')))
+```
+
+## Question 1
+
+### Part a
+
+```{r}
+sampleSD <- function() sd(as.numeric(str_trim(str_split(readline('Enter samples, comma-separated: '), ',')[[1]])))
+```
+
+### Part b
+
+```{r}
+kurtosis <- function(x) mean((x - mean(x))^4)
+
+normSamp <- rnorm(10^5)
+heavyTail <- normSamp^2 * sign(normSamp)
+thinTail <- sqrt(abs(normSamp)) * sign(normSamp)
+
+kurtosis(normSamp)
+kurtosis(thinTail)
+kurtosis(heavyTail)
+```
+
+```{r}
+ggplot() +
+  geom_histogram(aes(x = normSamp, fill = 'normal'), alpha = 0.5) +
+  geom_histogram(aes(x = heavyTail, fill = 'heavy'), alpha = 0.5) +
+  geom_histogram(aes(x = thinTail, fill = 'thin'), alpha = 0.5) +
+  scale_fill_discrete()
+```
+
+### Part c
+
+```{r}
+sampleStat <- function() {
+  fName <- str_trim(readline('Sample statistic name: ' ))
+  samps <- as.numeric(str_trim(str_split(readline('Enter samples, comma-separated: '), ',')[[1]]))
+  do.call(fName, list(samps))
+}
+```
+
+
+## Question 2
+
+```{r}
+covid %>%
+  select(Date, Country_Region, Province_State, Admin2, Case_Type, Cases) %>%
+  spread(Case_Type, Cases) ->
+  covid
+marchUSA <- covid %>% filter(Country_Region == 'US',
+                             Date >= '2020-03-01',
+                             Date <= '2020-03-31')
+```
+
+
+### Part a
+
+```{r}
+ggplot(marchUSA %>% filter(Province_State == "Washington"),
+       aes(x = Date, y = Confirmed, color = Admin2)) +
+  geom_smooth() + geom_point()
+```
+
+### Part b
+
+```{r}
+marchUSA$IFR0 <- marchUSA$Deaths/marchUSA$Confirmed
+```
+
+```{r}
+kingCo <- marchUSA %>% filter(Province_State == 'Washington',
+                              Admin2 == 'King') %>% arrange(Date)
+marchUSAtot <- marchUSA %>% 
+  group_by(Date) %>% 
+  summarize(Deaths = sum(Deaths),
+            Confirmed = sum(Confirmed)) %>%
+  mutate(IFR0 = Deaths/Confirmed)
+ggplot() +
+  geom_smooth(data = kingCo, aes(x = Date, y = IFR0, color = 'King best guess')) +
+  geom_smooth(data = kingCo, aes(x = Date, y = IFR0*1.5, color = 'King high')) +
+  geom_smooth(data = kingCo, aes(x = Date, y = IFR0/10, color = 'King low')) +
+  geom_smooth(data = marchUSAtot, aes(x = Date, y = IFR0, color = 'USA best guess')) +
+  geom_smooth(data = marchUSAtot, aes(x = Date, y = IFR0*1.5, color = 'USA high')) +
+  geom_smooth(data = marchUSAtot, aes(x = Date, y = IFR0/10, color = 'USA low')) +
+  geom_abline(slope = 0, intercept = 0.001)
+```
+
+From the March data, it appears at first glance that King County's Infection Fatality Ratio is higher than the country's as a whole: King County's best-case scenario line is over twice as high as the country's on the whole. However, the sensitivity scenarios show that this difference may be illusory: if the low scenario holds in King County (i.e. the virus spread much more widely than we initially thought, and 10x as many people had it as we believed), then King's IFR would be below the best guess for the US. Other factors not on the plot, like the fact that the pandemic *start* in King County and thus there was more time for the disease to take its toll there, are not considered on this plot. Thus, even though the grey uncertainty estimates seem to indicate that the King best guess is notably higher than the US best guess, our sensitivity analysis indicates that the truth may be far less certain.

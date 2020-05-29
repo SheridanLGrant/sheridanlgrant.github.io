@@ -1,7 +1,7 @@
 ---
-title: "STAT 302 SPR2020 Lecture 15"
+title: "STAT 302 SPR2020 Lecture 16"
 author: "Sheridan Grant"
-date: "May 18, 2020"
+date: "May 20, 2020"
 output: html_document
 editor_options: 
   chunk_output_type: console
