@@ -1,0 +1,68 @@
+---
+title: "STAT 302 SPR2020 Lecture 17"
+author: "Sheridan Grant"
+date: "May 27, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+## Preliminaries
+
+## Fairness through Awareness
+
+Generate data such that race does not effect "accident propensity metric" Y, only likelihood of purchasing a red car. U affects both.
+```{r}
+n <- 1000
+A <- c(rep(1, 1000),
+       rep(0, 1000))  # 1000 black, 1000 non-black drivers
+U <- rbinom(2*n, 1, 0.5)
+X <- rbinom(2*n, 1, A/3 + U/3)
+Y <- rnorm(2*n, 0.2 + U/10, 0.03)
+
+summary(lm(Y ~ X))
+summary(lm(Y ~ A))
+goodMod <- summary(lm(Y ~ X + A))
+
+preds <- coef(goodMod)[,1] %*% t(cbind(1, X, A))
+mean(preds[A])
+mean(preds[1-A])
+```
+
+## Thresholding Bias
+
+```{r}
+n <- 1000
+A <- c(rep(1, 1000),
+       rep(0, 1000))  # 1000 black, 1000 non-black drivers
+X <- rnorm(2*n, 0, A)
+Z <- rnorm(2*n, 0, 3)
+
+expit <- function(x) exp(x)/(exp(x) + 1)
+
+Y <- rbinom(2*n, 1, expit(X + Z))
+
+Xmod <- glm(Y ~ X, family = 'binomial')
+Zmod <- glm(Y ~ Z, family = 'binomial')
+
+Atest <- c(rep(1, 1000),
+           rep(0, 1000))  # 1000 black, 1000 non-black drivers
+Xtest <- rnorm(2*n, 0, Atest)
+Ztest <- rnorm(2*n, 0, 3)
+Ytest <- rbinom(2*n, 1, expit(Xtest + Ztest))
+
+Xpreds <- expit(coef(Xmod)%*%rbind(1,Xtest))
+Zpreds <- expit(coef(Zmod)%*%rbind(1,Ztest))
+
+hist(Xpreds)
+hist(Zpreds)
+
+t.test(Xpreds[A==1], Xpreds[A==0])
+t.test(Zpreds[A==1], Zpreds[A==0])
+
+f <- function(x) x > 0.75
+
+mean(A[f(Xpreds)])
+mean(A[f(Zpreds)])
+```
+

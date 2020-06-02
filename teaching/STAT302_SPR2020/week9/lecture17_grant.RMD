@@ -119,6 +119,7 @@ country %>% str_extract('.*. .*')
 country %>% str_subset('z')
 country %>% str_subset('(?i)[z]')  # I just Googled "case insensitive"
 country %>% str_subset("\\([^()]+\\)")  # Oops--Republic of the Congo vs. DRC
+country %>% str_subset("\\(.*\\)")  # Oops--Republic of the Congo vs. DRC
 country %>% str_subset('e{2,}|o{2,}')  # Runs of at least 2 letters
 ```
 
