@@ -79,12 +79,17 @@ Finally, we will be giving [5pts] for code style and cleanliness. For any functi
 
 \section{Time is of the Essence}
 
-In this question, you will time how long (in seconds) the computer takes to run code using the \verb|Sys.time| function. Make sure you understand how it works. Make sure you have \verb|tidyverse| and \verb|data.table| installed. Each part of this question requires that you time just a single line of code for each package.
+In this question, you will time how long (in seconds) the computer takes to run code using the \verb|Sys.time| function. Make sure you understand how to calculate the exact decimal number of seconds a line of code took to run (don't just print the start time and end time). Make sure you have \verb|tidyverse| and \verb|data.table| installed. Each part of this question requires that you time one or two lines of code for each package.
 
 \begin{enumerate}[(a)]
-	\item How long do \verb|tidyverse|'s \verb|readr| and \verb|data.table| take to read the coronavirus data? Which is faster, and by how much? You may use the data you originally downloaded in mid-April, and don't use any optional arguments to the functions that read the data (i.e. column formatting). [2pts]
-	\item How long do \verb|tidyverse|'s \verb|dplyr| and \verb|data.table| take to sort the coronavirus data by date? Which is faster, and by how much? [2pts]
-	\item How long do \verb|tidyverse|'s \verb|dplyr| and \verb|data.table| take to spread the coronavirus data into the format where Confirmed and Deaths are their own columns? Which is faster, and by how much? The line of code you write for each package should assign a \verb|data.frame|/\verb|data.table| with 6 columns---Date, Country\_Region, Province\_State, Admin2, Confirmed, and Deaths---to a variable. [6pts]
+	\item How long do \verb|tidyverse|'s \verb|readr| and \verb|data.table| take to read the coronavirus data? Which is faster? You may use the data you originally downloaded in mid-April. Reading the data involves making sure the columns are the correct data types, so for \verb|data.table| you'll need to set the Date type and for \verb|readr| use the code template below. [2pts]
+	\begin{verbatim}
+		read_csv("../data/coronavirus.csv",
+		         col_types = cols(Admin2 = col_character(),
+		                          Date = col_date('%m/%d/%Y')))
+	\end{verbatim}
+	\item How long do \verb|tidyverse|'s \verb|dplyr| and \verb|data.table| take to sort the coronavirus data by date? Which is faster? Make sure the sorted data are stored in the original variable name in your line of code. [2pts]
+	\item How long do \verb|tidyverse|'s \verb|dplyr| and \verb|data.table| take to spread the coronavirus data into the format where Confirmed and Deaths are their own columns? Which is faster? The line of code you write for each package should assign a \verb|data.frame|/\verb|data.table| with 6 columns---Date, Country\_Region, Province\_State, Admin2, Confirmed, and Deaths---and half the number of rows of the original data frame to a variable. [6pts]
 \end{enumerate}
 
 \section{Trolling the Trolls}
@@ -93,8 +98,8 @@ I have put a small subset of the Quora ``Troll Question'' data on the website. R
 
 \begin{enumerate}[(a)]
 	\item What percent of the questions start with ``Why,'' ``Where,'' ``Who,'' ``When,'' ``What,'' ``How,'' or something else? Capitalization doesn't matter. Please put the answer, a vector of 7 numerics that add up to 1 corresponding to the order in the previous sentence, in a vector called \verb|qTypes|. [2pts]
-	\item What percent of the questions include a single period followed by a space? (These questions will either include sentences, or words such as ``Mr.'' and ``Mrs.'' but probably more of the former.) Are these questions more or less likely to be a Troll question than a randomly selected question? [3pts]
-	\item In class Wednesday, we explored two concepts---discussion of vaccines and use of multiple question marks in a row---that led to a higher likelihood of being a Troll. Use those two concepts (just look for discussion of vaccines, not autism) as well as the one from the previous part to build a logistic regression model with \verb|target| as the outcome and those 3 concepts as (binary) covariates. Train it on the first $90,000$ rows of the data (no shuffling) and use a prediction rule to test its accuracy on the rest of the data. Does your prediction rule do better in terms of pure accuracy than just guessing ``not troll'' every time? Explain when accuracy may be a bad prediction metric for a statistical model. [5pts]
+	\item What percent of the questions include a single period, that does not begin the question, followed by exactly one space? (These questions will either include sentences, or words such as ``Mr.'' and ``Mrs.,'' but probably more of the former.) Are these questions more or less likely to be a Troll question than a randomly selected question? Use the regular expression \verb|'^.*\\.{1} {1}'|. [3pts]
+	\item In class Wednesday, we explored two concepts---discussion of vaccines and use of multiple question marks in a row---that led to a higher likelihood of being a Troll. Use those two concepts (just look for discussion of vaccines, not autism) as well as the one from the previous part to build a logistic regression model with \verb|target| as the outcome and those 3 concepts as (binary) covariates. Train it on the first $90,000$ rows of the data (no shuffling) and use a prediction rule of the form $f_{cutoff}(x) = \Ind[x > cutoff]$ to test its accuracy on the rest of the data. Does your prediction rule do better in terms of pure accuracy than just guessing ``not troll'' every time? Explain when accuracy may be a bad prediction metric for a statistical model. [5pts]
 \end{enumerate}
 
 \section{Project Prep}
