@@ -34,7 +34,7 @@ mean(preds[1-A])
 ```{r}
 n <- 1000
 A <- c(rep(1, 1000),
-       rep(0, 1000))  # 1000 black, 1000 non-black drivers
+       rep(0, 1000))  # 1000 black, 1000 non-black
 X <- rnorm(2*n, 0, A)
 Z <- rnorm(2*n, 0, 3)
 
@@ -44,9 +44,10 @@ Y <- rbinom(2*n, 1, expit(X + Z))
 
 Xmod <- glm(Y ~ X, family = 'binomial')
 Zmod <- glm(Y ~ Z, family = 'binomial')
+Amod <- glm(Y ~ A, family = 'binomial')
 
 Atest <- c(rep(1, 1000),
-           rep(0, 1000))  # 1000 black, 1000 non-black drivers
+           rep(0, 1000))
 Xtest <- rnorm(2*n, 0, Atest)
 Ztest <- rnorm(2*n, 0, 3)
 Ytest <- rbinom(2*n, 1, expit(Xtest + Ztest))
@@ -61,6 +62,13 @@ t.test(Xpreds[A==1], Xpreds[A==0])
 t.test(Zpreds[A==1], Zpreds[A==0])
 
 f <- function(x) x > 0.75
+f0 <- function(x) x > 0.25
+
+mean(f(Xpreds))
+mean(f(Zpreds))
+
+mean(f0(Xpreds))
+mean(f0(Zpreds))
 
 mean(A[f(Xpreds)])
 mean(A[f(Zpreds)])
