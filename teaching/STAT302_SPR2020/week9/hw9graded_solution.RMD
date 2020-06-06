@@ -1,0 +1,150 @@
+---
+title: "STAT 302 SPR2020 Homework 9 Graded Solution"
+author: "Sheridan Grant"
+date: "6/1/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+Collaborators: moi, yo, myself
+
+Required libraries:
+```{r, warning=F, message=F}
+library(tidyverse)
+library(data.table)
+```
+
+Helper functions:
+```{r}
+expit <- function(x) exp(x)/(exp(x) + 1)
+acc <- function(y, yhat) mean(y == yhat)
+```
+
+
+## Question 1
+
+Check students' code for this one, as computers will behave differently.
+
+### Part a
+
+readr
+```{r}
+t0 <- Sys.time()
+covid_tidy <- read_csv("../data/coronavirus.csv",
+                       col_types = cols(Admin2 = col_character(),
+                                        Date = col_date('%m/%d/%Y')))
+t1 <- Sys.time()
+cat('readr read_csv time for covid:', t1-t0, '\n')
+```
+
+data.table
+```{r}
+t2 <- Sys.time()
+covid_dt <- fread("../data/coronavirus.csv")
+covid_dt$Date <- as.Date(covid_dt$Date, format = '%m/%d/%Y')
+t3 <- Sys.time()
+cat('data.table fread time for covid:', t3-t2, '\n')
+```
+
+data.table 3-4x faster!
+
+### Part b
+
+dplyr
+```{r}
+t4 <- Sys.time()
+covid_tidy %>% arrange(Date) -> covid_tidy
+t5 <- Sys.time()
+cat('dplyr arrange time for covid:', t5-t4, '\n')
+```
+
+data.table
+```{r}
+t6 <- Sys.time()
+covid_dt %>% setorder('Date')
+t7 <- Sys.time()
+cat('data.table setorder time for covid:', t7-t6, '\n')
+```
+
+data.table 3-4x faster!
+
+### Part c
+
+dplyr
+```{r}
+t8 <- Sys.time()
+covid_tidy %>%
+  select(Date, Country_Region, Province_State, Admin2, Case_Type, Cases) %>%
+  spread(Case_Type, Cases) -> covid_tidy
+head(covid_tidy)
+dim(covid_tidy)
+t9 <- Sys.time()
+cat('dplyr spread time for covid:', t9-t8, '\n')
+```
+
+data.table
+```{r}
+t10 <- Sys.time()
+covid_dt %>% dcast(Country_Region+Province_State+Admin2+Date~Case_Type,
+                   value.var = "Cases") -> covid_dt
+head(covid_dt)
+dim(covid_dt)
+t11 <- Sys.time()
+cat('data.table dcast time for covid:', t11-t10, '\n')
+```
+
+data.table 3x faster!
+
+## Question 2
+
+```{r}
+quora <- read_csv('../data/quoraSmall.csv')
+n <- nrow(quora)
+```
+
+### Part a
+
+```{r}
+qs <- c('who', 'what', 'when', 'where', 'why', 'how')
+
+percs <- sapply(qs, function(q) quora %>% filter(str_detect(question_text, str_c('(?i)', q))) %>% nrow()/n)
+
+otherPerc <- 1 - sum(percs)
+qTypes <- c(percs, otherPerc)
+qTypes
+```
+
+### Part b
+
+```{r}
+quora %>% 
+  filter(str_detect(question_text, '^.*\\.{1} {1}')) %>%
+  nrow()/n
+
+quora %>% 
+  filter(str_detect(question_text, '^.*\\.{1} {1}')) %>%
+  summarize(trollPerc = mean(target))
+
+mean(quora$target)
+```
+
+Somewhat more likely. Perhaps a statement in a question can be meant to bias readers?
+
+### Part c
+
+```{r}
+quora %>% 
+  mutate(vac = str_detect(question_text, '(?i)vaccin'),
+         qq = str_detect(question_text, '\\?{2,}'),
+         per = str_detect(question_text, '^.*\\.{1} {1}')) ->
+  quora
+
+trollMod <- glm(target ~ vac + qq + per, data = quora[1:90000,], family = 'binomial')
+summary(trollMod)
+
+f <- function(x) x > expit(coef(trollMod)[1])
+preds <- predict(trollMod, quora[90001:n,], type = 'response')
+acc(f(preds), quora[90001:n,'target'])
+```
+
+We get 94% accuracy by just using a prediction of "not troll" every time (only 6% troll questions)--without using covariates or the questions themselves at all! Our prediction rule doesn't do better in terms of accuracy because even though we may be identifying Troll questions at > 6% accuracy, we aren't beating 94%! When the two outcome classes are this imbalanced, accuracy is usually unhelpful.

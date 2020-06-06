@@ -107,3 +107,5 @@ ggplot() +
 ```
 
 From the March data, it appears at first glance that King County's Infection Fatality Ratio is higher than the country's as a whole: King County's best-case scenario line is over twice as high as the country's on the whole. However, the sensitivity scenarios show that this difference may be illusory: if the low scenario holds in King County (i.e. the virus spread much more widely than we initially thought, and 10x as many people had it as we believed), then King's IFR would be below the best guess for the US. Other factors not on the plot, like the fact that the pandemic *start* in King County and thus there was more time for the disease to take its toll there, are not considered on this plot. Thus, even though the grey uncertainty estimates seem to indicate that the King best guess is notably higher than the US best guess, our sensitivity analysis indicates that the truth may be far less certain.
+
+Finally, all scenarios' fatality rates are **well** above that of the seasonal flu. Even if coronavirus isn't as deadly as we think it is, it's still worth worrying about much more than the flu, which justifies us taking it seriously.
