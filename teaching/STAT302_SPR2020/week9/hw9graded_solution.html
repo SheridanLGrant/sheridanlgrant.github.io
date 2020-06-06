@@ -397,14 +397,14 @@ covid_tidy &lt;- read_csv(&quot;../data/coronavirus.csv&quot;,
 ## See problems(...) for more details.</code></pre>
 <pre class="r"><code>t1 &lt;- Sys.time()
 cat(&#39;readr read_csv time for covid:&#39;, t1-t0, &#39;\n&#39;)</code></pre>
-<pre><code>## readr read_csv time for covid: 3.428948</code></pre>
+<pre><code>## readr read_csv time for covid: 4.368342</code></pre>
 <p>data.table</p>
 <pre class="r"><code>t2 &lt;- Sys.time()
 covid_dt &lt;- fread(&quot;../data/coronavirus.csv&quot;)
 covid_dt$Date &lt;- as.Date(covid_dt$Date, format = &#39;%m/%d/%Y&#39;)
 t3 &lt;- Sys.time()
 cat(&#39;data.table fread time for covid:&#39;, t3-t2, &#39;\n&#39;)</code></pre>
-<pre><code>## data.table fread time for covid: 1.315134</code></pre>
+<pre><code>## data.table fread time for covid: 1.327819</code></pre>
 <p>data.table 3-4x faster!</p>
 </div>
 <div id="part-b" class="section level3">
@@ -414,13 +414,13 @@ cat(&#39;data.table fread time for covid:&#39;, t3-t2, &#39;\n&#39;)</code></pre
 covid_tidy %&gt;% arrange(Date) -&gt; covid_tidy
 t5 &lt;- Sys.time()
 cat(&#39;dplyr arrange time for covid:&#39;, t5-t4, &#39;\n&#39;)</code></pre>
-<pre><code>## dplyr arrange time for covid: 0.522486</code></pre>
+<pre><code>## dplyr arrange time for covid: 0.481689</code></pre>
 <p>data.table</p>
 <pre class="r"><code>t6 &lt;- Sys.time()
 covid_dt %&gt;% setorder(&#39;Date&#39;)
 t7 &lt;- Sys.time()
 cat(&#39;data.table setorder time for covid:&#39;, t7-t6, &#39;\n&#39;)</code></pre>
-<pre><code>## data.table setorder time for covid: 0.1326511</code></pre>
+<pre><code>## data.table setorder time for covid: 0.1377501</code></pre>
 <p>data.table 3-4x faster!</p>
 </div>
 <div id="part-c" class="section level3">
@@ -444,7 +444,7 @@ head(covid_tidy)</code></pre>
 <pre><code>## [1] 287820      6</code></pre>
 <pre class="r"><code>t9 &lt;- Sys.time()
 cat(&#39;dplyr spread time for covid:&#39;, t9-t8, &#39;\n&#39;)</code></pre>
-<pre><code>## dplyr spread time for covid: 1.571792</code></pre>
+<pre><code>## dplyr spread time for covid: 1.79919</code></pre>
 <p>data.table</p>
 <pre class="r"><code>t10 &lt;- Sys.time()
 covid_dt %&gt;% dcast(Country_Region+Province_State+Admin2+Date~Case_Type,
@@ -461,7 +461,7 @@ head(covid_dt)</code></pre>
 <pre><code>## [1] 287820      6</code></pre>
 <pre class="r"><code>t11 &lt;- Sys.time()
 cat(&#39;data.table dcast time for covid:&#39;, t11-t10, &#39;\n&#39;)</code></pre>
-<pre><code>## data.table dcast time for covid: 0.473248</code></pre>
+<pre><code>## data.table dcast time for covid: 0.510927</code></pre>
 <p>data.table 3x faster!</p>
 </div>
 </div>
@@ -479,13 +479,13 @@ cat(&#39;data.table dcast time for covid:&#39;, t11-t10, &#39;\n&#39;)</code></p
 <h3>Part a</h3>
 <pre class="r"><code>qs &lt;- c(&#39;who&#39;, &#39;what&#39;, &#39;when&#39;, &#39;where&#39;, &#39;why&#39;, &#39;how&#39;)
 
-percs &lt;- sapply(qs, function(q) quora %&gt;% filter(str_detect(question_text, str_c(&#39;(?i)&#39;, q))) %&gt;% nrow()/n)
+percs &lt;- sapply(qs, function(q) quora %&gt;% filter(str_detect(question_text, str_c(&#39;(?i)&#39;, str_c(&#39;^&#39;, q)))) %&gt;% nrow()/n)
 
 otherPerc &lt;- 1 - sum(percs)
 qTypes &lt;- c(percs, otherPerc)
 qTypes</code></pre>
 <pre><code>##     who    what    when   where     why     how         
-## 0.04210 0.35575 0.04775 0.02348 0.12231 0.22458 0.18403</code></pre>
+## 0.01702 0.31405 0.01062 0.01392 0.10457 0.18963 0.35019</code></pre>
 </div>
 <div id="part-b-1" class="section level3">
 <h3>Part b</h3>

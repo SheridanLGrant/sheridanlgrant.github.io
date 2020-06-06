@@ -107,7 +107,7 @@ n <- nrow(quora)
 ```{r}
 qs <- c('who', 'what', 'when', 'where', 'why', 'how')
 
-percs <- sapply(qs, function(q) quora %>% filter(str_detect(question_text, str_c('(?i)', q))) %>% nrow()/n)
+percs <- sapply(qs, function(q) quora %>% filter(str_detect(question_text, str_c('(?i)', str_c('^', q)))) %>% nrow()/n)
 
 otherPerc <- 1 - sum(percs)
 qTypes <- c(percs, otherPerc)
