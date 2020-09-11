@@ -1,0 +1,150 @@
+---
+title: "Final Project"
+author: "Coco Paule"
+date: "6/11/2020"
+output: html_document
+---
+
+# Student Alcohol Consumption
+The data comes from surveys conducted on students in a math class and a Portuguese class. Each observation represents a student in the class. The relevant variables are each student's quality of family relationships, frequency of going out with friends, amount of free time after school, current health status, weekday alcohol consumption, and grades in the courses. I studied the different factors that affect student alcohol consumption, and how alcohol consumption, in turn, affects students' grades. 
+
+```{r, warning=F, message=F, echo=F}
+# install.packages('tidyverse')
+library(tidyverse)
+# install.packages('glmnet')
+library(glmnet)
+set.seed(123)
+```
+
+```{r, message=FALSE}
+mat <- read_csv("student-mat.csv")
+por <- read_csv("student-por.csv")
+mat <- mat %>% select(famrel, freetime, goout, Dalc, health, G1, G2, G3)
+por <- por %>% select(famrel, freetime, goout, Dalc, health, G1, G2, G3)
+joint <- rbind(mat, por)
+```
+
+```{r}
+head(mat)
+head(por)
+```
+Since level of alcohol consumption is on an index of 1 to 5, and the original data set does not describe these levels, I will assume the following: Dalc=1 means very little, Dalc=2 means little, Dalc=3 means moderate, Dalc=4 means high, and Dalc=5 means very high alcohol consumption.
+
+     
+#### Which variable from the student survey, if any, has most correlation to workday alcohol consumption? Which is best at predicting workday alcohol consumption from trained data to separate test data? 
+Variables to be compared: quality of family relationships, frequency of going out with friends, amount of free time after school, current health status. The students answered each of these variables on a scale of 1 to 5. 
+```{r}
+surveyMod <- lm(Dalc ~ goout + famrel + freetime + health, data = joint)
+coef(surveyMod)
+```
+The frequency that students go out is best at explaining weekday alcohol consumption. Holding all other variables constant, an increase of 1 unit in level of going out leads to an increase of about 0.188 in weekday alcohol consumption. While frequency of going out, amount of free time, and health are positively correlated with weekday alcohol consumption holding other variables constant, quality of family relationships is negatively correlated with the response variable. The more the students went out, the more alcohol they tend to consume (similarly for amount of free time and health), but the better family relationships were, the less alcohol they consumed. 
+
+```{r}
+summary(surveyMod)
+```
+All of the p-values are less than 0.05, which means that for each variable, we can reject the null hypothesis that the coefficient is zero. All four of the variables are not completely unrelated to weekday alcohol consumption. 
+    
+```{r}
+gooutMod <- lm(Dalc ~ goout, data = joint) # going out model
+famrelMod <- lm(Dalc ~ famrel, data = joint) # family relationships model
+freetimeMod <- lm(Dalc ~ freetime, data = joint) # free time model
+healthMod <- lm(Dalc ~ health, data = joint) # health model
+
+gooutPoints <- joint %>% group_by(Dalc) %>% count(goout)
+ggplot(gooutPoints, mapping = aes(x = goout, y = Dalc)) +
+  geom_point(aes(size = n)) +
+  geom_abline(slope = coef(gooutMod)[2], intercept = coef(gooutMod)[1]) +
+  ggtitle('Weekday Alcohol Consumption vs. Going Out') +
+  xlab('Frequency of Going Out') + ylab('Weekday Alcohol Consumption')
+
+famrelPoints <- joint %>% group_by(Dalc) %>% count(famrel)
+ggplot(famrelPoints, mapping = aes(x = famrel, y = Dalc)) +
+  geom_point(aes(size = n)) +
+  geom_abline(slope = coef(famrelMod)[2], intercept = coef(famrelMod)[1]) + 
+  ggtitle('Weekday Alcohol Consumption vs. Family Relationships') +
+  xlab('Quality of Family Relationships') + ylab('Weekday Alcohol Consumption')
+
+freetimePoints <- joint %>% group_by(Dalc) %>% count(freetime)
+ggplot(freetimePoints, mapping = aes(x = freetime, y = Dalc)) +
+  geom_point(aes(size = n)) +
+  geom_abline(slope = coef(freetimeMod)[2], intercept = coef(freetimeMod)[1]) + 
+  ggtitle('Weekday Alcohol Consumption vs. Free Time') +
+  xlab('Amount of Free Time') + ylab('Weekday Alcohol Consumption')
+
+healthPoints <- joint %>% group_by(Dalc) %>% count(health)
+ggplot(healthPoints, mapping = aes(x = health, y = Dalc)) +
+  geom_point(aes(size = n)) +
+  geom_abline(slope = coef(healthMod)[2], intercept = coef(healthMod)[1]) + 
+  ggtitle('Weekday Alcohol Consumption vs. Health') +
+  xlab('Current Health Status') + ylab('Weekday Alcohol Consumption')
+```
+
+Next, we investigate the predictive power of these four variables.
+```{r}
+n <- nrow(joint)
+ind <- sample(n)
+trainInd <- ind[1:(n/2)]
+testInd <- ind[(n/2+1):n]
+train <- joint[trainInd,]
+test <- joint[testInd,]
+
+gooutTrainMod <- lm(Dalc ~ goout, data = train) 
+famrelTrainMod <- lm(Dalc ~ famrel, data = train) 
+freetimeTrainMod <- lm(Dalc ~ freetime, data = train) 
+healthTrainMod <- lm(Dalc ~ health, data = train)
+
+# rmse: returns the root mean squared error, given the measured data and predicted data
+rmse <- function(y,yhat) sqrt(mean((y-yhat)^2))
+
+rmse(test$Dalc, predict(gooutTrainMod, test))
+rmse(test$Dalc, predict(famrelTrainMod, test))
+rmse(test$Dalc, predict(freetimeTrainMod, test))
+rmse(test$Dalc, predict(healthTrainMod, test))
+```
+The RMSE for all four models are pretty close. The 'going out' model has the lowest RMSE, which means that the predicted points based on the 'going out' model are closest to the observed data points in the test data. The frequency that students go out is best at predicting weekday alcohol consumption.
+
+          
+#### Is there a significant difference in final grades based on weekday alcohol consumption? Is this different for the math vs. the Portuguese class?
+
+We first look at students in the math course. 
+```{r}
+ggplot(data = mat, mapping = aes(x = as.factor(Dalc), y = G3)) +
+  geom_boxplot() +
+  ggtitle('Math Course Grades vs. Weekday Alcohol Consumption') +
+  xlab('Weekday Alcohol Consumption') +
+  ylab('Final Grades in Math Course')
+```
+ 
+The graph itself is not enough to determine whether the grades in each group are different.
+
+```{r}
+aovModMat <- aov(G3 ~ as.factor(Dalc), data = mat) 
+summary(aovModMat)
+```
+The p-value given by the ANOVA model regression is greater than 0.05. There is not enough evidence to say that there is a statistically significant difference between the final math grades of the groups of students (grouped by level of alcohol consumption). 
+
+Next, we examine the Portuguese class.
+```{r}
+ggplot(data = por, mapping = aes(x = as.factor(Dalc), y = G3)) +
+  geom_boxplot() +
+  ggtitle('Portuguese Course Grades vs. Weekday Alcohol Consumption') +
+  xlab('Weekday Alcohol Consumption') +
+  ylab('Final Grades in Portuguese Course')
+```
+ 
+Again, the graph is not enough to see if the grades are different in each group. However, compared to the previous graphs from the math course, there seems to be more of a downward trend of grades as alcohol consumption rises.
+
+```{r}
+aovModPor <- aov(G3 ~ as.factor(Dalc), data = por) 
+summary(aovModPor)
+```
+For the Portuguese course, the p-value is much less than 0.05. There is a statistically significant difference between the final grades in the groups of students (grouped by alcohol consumption). 
+
+```{r}
+TukeyHSD(aovModPor)
+```
+There are only statistically significant differences in the grades between Groups 1 and 2, Groups 1 and 4, and Groups 2 and 4 ("Group #" means the group of students with weekday alcohol consumption equal to #). There is a statistically significant difference in Portuguese grades between students who drink very little alcohol and students who drink some alcohol. The mean Portuguese course grade of students who drink very little alcohol is 0.94 points higher than students who drink little alcohol and 3.36 points higher than students who drink high amounts of alcohol. The mean Portuguese course grade for students who drink little alcohol is 2.42 points higher than students who drink high amounts of alcohol.
+
+Students' grades in the math course did not vary much with the level of alcohol consumption, while students' grades in the Portuguese course varied with the level of alcohol consumption more. In general, students who drink very little alcohol on weekdays have higher Portuguese course grades than many of the other groups (little alcohol and high alcohol). 
+
+

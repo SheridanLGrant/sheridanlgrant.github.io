@@ -5,3 +5,6 @@
 *.blg
 *.csv
 teaching/STAT302_SPR2020/zooms/*
+*.png
+*_MACOSX
+*.zip

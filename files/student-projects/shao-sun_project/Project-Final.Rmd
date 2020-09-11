@@ -1,0 +1,337 @@
+---
+title: "Analysis of House Sales Data in King County, WA"
+author: "By: Winnie Shao and Yuchen Sun"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+---
+ 
+```{r echo=FALSE, message = F}
+library(tidyverse)
+library(data.table)
+library(stringr)
+library(reshape2)
+library(leaps)
+library(caret)
+library(corrplot)
+library(leaflet)
+library(rgdal)
+library(riskyr)
+library(prettydoc)
+library(rpart)
+library(rpart.plot)
+```
+
+> Data obtained from: https://www.kaggle.com/harlfoxem/housesalesprediction  
+
+```{r echo=FALSE, warning = F}
+house = read_csv('kc_house_data.csv', col_types = 
+                   cols(.default = col_double(),
+                        id = col_character(),
+                        date = col_datetime(format = ""))) %>% mutate(zipcode = as.factor(zipcode)) %>% select(id, date, price, bedrooms, bathrooms, sqft_living, sqft_lot, floors, waterfront, view, condition, grade, sqft_above, sqft_basement, yr_built, yr_renovated, zipcode, lat, long)
+```
+
+### Exploratory Analysis  
+Dataset contains 21 variables in total. We removed two repeated measure variables that were not used in our analysis (sqft_living15, sqft_lot15).
+
+```{r echo = FALSE}
+str(house)
+```
+
+#### Variable of Interest
+Price plays a big role in the decision to purchase a home. This analysis will use techniques such as multiple linear regression and random forest to study the relationship between the price and other variables present in the dataset, with the hope of helping potential home buyers understand the King County housing market and estimate a price for a home they desire.
+
+#### Correlation Plot  
+```{r echo = FALSE}
+house_corr = house %>% select(-id, -date, -zipcode)
+corrplot(cor(house_corr))
+```  
+
+Price has a strong correlation with sqft_living, which suggests price per sqft would be interesting to examine, and with grade, which is the government's assessment on house quality (higher is better). So, the correlation is explained there.
+
+#### New Price by Sqft Variables Introduced and Another Correlation Plot
+```{r echo = FALSE}
+house %>% mutate(price_sqft_living = price/sqft_living, price_sqft_lot = price/sqft_lot) -> house
+house_corr = house %>% select(-id, -date, -zipcode)
+corrplot(cor(house_corr))
+```
+
+There appears to be some correlation between latitutde and longtitude with the new price variables, which suggests price may be related to location.
+
+#### Map of House Price
+```{r echo=FALSE}
+house_map = house
+house_map$PriceBin = cut(house$price,
+                    c(0,250000,500000,750000,1000000,2000000,999000000))
+center_lon = median(house_map$long,na.rm = TRUE)
+center_lat = median(house_map$lat,na.rm = TRUE)
+factpal <- colorFactor(c("black","blue",
+                         "green","yellow",
+                         "orange","red"), 
+                       house_map$PriceBin)
+leaflet(house_map) %>%
+  addProviderTiles("Esri.NatGeoWorldMap") %>%
+  addCircles(lng = ~long,
+             lat = ~lat, 
+             color = ~factpal(PriceBin))  %>%
+  setView(lng=center_lon, lat=center_lat,zoom = 12) %>%
+  addLegend('topleft', title = "Sold Price ($)", 
+            pal = factpal,
+            values = ~PriceBin,
+            opacity = 1)
+```
+
+
+#### Map of House Price Adjusted by Sqft
+```{r echo=FALSE}
+house_map = house
+house_map$PriceBin = cut(house$price_sqft_living,
+                    seq(87, 811, by = (811-87)/5))
+center_lon = median(house_map$long,na.rm = TRUE)
+center_lat = median(house_map$lat,na.rm = TRUE)
+factpal <- colorFactor(c("black","blue",
+                         "green","yellow",
+                         "orange","red"), 
+                       house_map$PriceBin)
+leaflet(house_map) %>%
+  addProviderTiles("Esri.NatGeoWorldMap") %>%
+  addCircles(lng = ~long,
+             lat = ~lat, 
+             color = ~factpal(PriceBin))  %>%
+  setView(lng=center_lon, lat=center_lat,zoom = 12) %>%
+  addLegend('topleft', 
+            title = "Sold Price by Sqft Living ($)",
+            pal = factpal,
+            values = ~PriceBin,
+            opacity = 1)
+```
+
+In both maps, there is a clustering of high priced properties around Mercer Island, Bellevue, and Capital Hill. Redmond and Sammamish also has expensive properties, but their cost is high because of larger living spaces.
+
+So, location is not the only variable influencing the house price. We use multiple regression below to find what predictors are most influential to house price.
+```{r}
+
+```
+
+#### Choosing Multiple Linear Regression model  
+
+Looking at the residual qq-plots of multiple linear regression, notice the assumption that the error terms should be i.i.d normal with mean at 0 is violated.
+
+```{r warning=FALSE, echo=FALSE}
+house1 = house %>% select(-id, -date, -price_sqft_living, -price_sqft_lot, -zipcode)
+model_lin = lm(price~., data = house1)
+plot(model_lin, which=2)
+```
+
+But, after a log transformation, the linear model seems reasonable.
+
+```{r}
+model_log = lm(log(price)~., data = house1)
+plot(model_log, which=2)
+```
+
+
+#### Multiple Linear Regression of Log Price on 16 Other Variables 
+
+After comparing the normal qq-plot, we choose to build a multiple linear regression of log transformed price on the other 16 variables (excluding id and date). We examine its performance by using a 5 fold cross validation.
+
+```{r warning=FALSE, echo=FALSE}
+house1 = house %>% select(-id, -date, -price_sqft_living, -price_sqft_lot, -zipcode)
+fit = trainControl(method = 'cv', number = 5)
+model_log = train(log(price)~., data = house1, method = 'lm', trControl = fit,
+                 metric = 'RMSE')
+model_log
+```
+
+The 16 other variables explains approximately 76% of the variation in price.
+
+#### Multiple Linear Regression of Log Price Per Sqft on 16 Other Variables 
+
+The we change the outcome to price_sqft_living and price_sqft_lot.
+
+```{r warning=FALSE, echo=FALSE}
+house1 = house %>% select(-id, -date, -price, -price_sqft_lot, -zipcode)
+fit = trainControl(method = 'cv', number = 5)
+model_log_sqft_living = train(log(price_sqft_living)~., data = house1, method = 'lm', trControl = fit,
+                 metric = 'RMSE')
+print("Price per Sqft Living:")
+model_log_sqft_living
+
+house1 = house %>% select(-id, -date, -price, -price_sqft_living, -zipcode)
+fit = trainControl(method = 'cv', number = 5)
+model_log_sqft_lot = train(log(price_sqft_lot)~., data = house1, method = 'lm', trControl = fit,
+                 metric = 'RMSE')
+print("Price per Sqft Lot:")
+model_log_sqft_lot
+```
+
+Notice the Rsquared statistic is significantly lower when we adjust price by sqft living or lot. Guessing by the variables present in the dataset, this is because most of these variables are strongly correlated with the property size. By normalizing price with a size variable, we are removing some correlation.
+
+#### Relative Variable Importance  
+
+Which variables have a large influence on the house price? We will first look at the magnitude of the standardized coefficients of the multiple linear regression. It is important we standardize our covariates so that their coefficient's magnitude can be meaingfully compared. 
+
+```{r echo = FALSE}
+standardize_house <- house %>% select(-id, -date, -zipcode) %>% mutate_all(function(v){ (v-mean(v))/sd(v)})
+
+standardize_house <- standardize_house %>% select(-price_sqft_living, -price_sqft_lot)
+
+standardized_lm <- as.formula(paste("price ~ ", paste( names(standardize_house)[2:16], collapse = "+")))
+
+st_lm_coef <- lm(standardized_lm, data = standardize_house)$coef
+st_lm_coef <- st_lm_coef[!is.na(st_lm_coef)][2:15]
+
+barplot(sort(rank(st_lm_coef)), main = "Magnitude of Standardized Coefficients (Higher is Larger)", ylab = "Rank of Magnitude", las = 2)
+```
+
+Sqft of living appears to have the largest standardized coefficient in the linear model, which suggests it has the largest influence on price. It is followed by grade and lat. Grade is previously explained, and latitude can be seen from the maps.
+
+Of course, there are other ways to determine the importance of the covariates. For example, how does the addition of that variable increase the R squared statistic. The ranking below is generated from a function in a R package using a different method. This is to show that different method produces slightly different rankings. Sometimes these methods will produce contradictory rankings, so we need to also use our subject area knowledge.
+
+```{r echo=FALSE}
+importance = varImp(model_log)
+varImportance <- data.frame(Variables = row.names(importance[[1]]), 
+                            Importance = round(importance[[1]]$Overall,2))
+# Create a rank variable based on importance
+rankImportance <- varImportance %>%
+  mutate(Rank = paste0('#',dense_rank(desc(Importance))))
+rankImportancefull = rankImportance
+ggplot(rankImportance, aes(x = reorder(Variables, Importance), 
+                           y = Importance))+
+  geom_bar(stat='identity',color="white", fill = 'purple') +
+  geom_text(aes(x = Variables, y = 1, label = Rank),
+            hjust=0, vjust=.5, size = 4, color = 'black',
+            fontface = 'bold') +
+  labs(x = 'Variables', title = 'Relative Variable Importance') +
+  coord_flip() + 
+  theme_bw()
+```
+
+#### Best Subset Selection
+
+What is the best subset of variables to predict house price? To find the best subset, we will do an exhaustive search of subsets of different sizes up to 14 variables.
+
+```{r echo=FALSE}
+house1 = house %>% select(-id, -date, -price_sqft_living, -price_sqft_lot, -zipcode)
+models = regsubsets(log(price)~., data = house1, nvmax = 14)
+summary(models)
+```
+
+Lat(lattitude), grade, yr_built, and sqft_living are identified to be the best variables for subset size 4.
+
+We also want to determine how many variables should be subsetting so that we can obtain a simple model with good performance. Therefore, we did 5-fold cross validation on 14 best subset model and calculate the cross validation error (zipcode was omitted to avoid interpreting results with a factor variable):  
+
+```{r echo=FALSE}
+get_model_formula = function(id, object, outcome){
+  # get models data
+  models <- summary(object)$which[id,-1]
+  predictors <- names(which(models == TRUE))
+  predictors <- paste(predictors, collapse = "+")
+  # Build model formula
+  as.formula(paste0(outcome, "~", predictors))
+}
+get_cv_error <- function(model.formula, data){
+  set.seed(1)
+  train.control <- trainControl(method = "cv", number = 5)
+  cv <- train(model.formula, data = data, method = "lm",
+              trControl = train.control)
+  cv$results$RMSE
+}
+model.ids <- 1:14
+cv.errors <-  map(model.ids, get_model_formula, models, "log(price)") %>%
+  map(get_cv_error, data = house) %>%
+  unlist()
+```
+```{r echo=FALSE}
+plot(1:14, cv.errors, type = 'l', main = 'The CV Error of Different Subset',
+     xlab = 'Numbers of Variables in the Subset',
+     ylab = 'Cross Validation Error')
+points(1:14, cv.errors)
+```
+
+A lower cross validation error is desired, but lower cross validation error means higher cost complexity. The plot above shows that 5 variables seem to be ideal, as beyond that, CV doesn't decrease by much.
+
+#### Interaction Between sqft_living and grade:  
+
+Looking back to the correlation plot, there is a strong correlation between sqft_living and grade. Since both variables are determined important predictors of price, their interaction is examined.
+
+```{r echo=FALSE}
+cat('The correlation between price and sqft_living: ',
+    cor(house$price, house$sqft_living), '\n')
+cat('The correlation between price and grade: ',
+    cor(house$price, house$grade), '\n')
+```
+  
+```{r echo=FALSE}
+cat('The correlation between sqft_living and grade: ',
+    cor(house$sqft_living, house$grade), '\n')
+```
+
+Our Null Hypothesis is that there is no interaction between this two variable with $\alpha = 0.001$.  
+
+We first fit the price with these 2 variables without interaction:  
+
+```{r echo=FALSE}
+summary(lm(log(price)~sqft_living + grade, data = house))
+```
+
+We can see that as we showed before, sqft_living and grade are both significant to the model. Then we fit the price with these 2 variable with interaction:  
+
+```{r echo=FALSE}
+summary(lm(log(price)~sqft_living * grade, data = house))
+```
+
+We can see that the p-value for the interaction term is way less than 0.001. Therefore, we can reject the null hypothesis and claim that there is an interaction between variable sqft_living and grade.  
+
+#### Comparing Multiple Regression Model with Regression Tree
+Now, instead of looking at the genearl King County region, our next multiple regression model focuses on the areas surrounding the university. 
+
+```{r part3, echo=FALSE}
+house %>% filter(zipcode %in% c('98105', '98115', '98112', '98103')) -> zipfilthouse
+
+set.seed(1)
+
+scramble <- sample(nrow(zipfilthouse))
+index80 <- round(nrow(zipfilthouse)*0.8)
+training <- zipfilthouse[scramble[1:index80], ]
+test <- zipfilthouse[scramble[(index80+1):nrow(zipfilthouse)], ]
+
+fit = trainControl(method = 'cv', number = 5)
+model_log = train(log(price)~view + sqft_living * grade + yr_built + lat, data = house1, method = 'lm', trControl = fit, metric = 'RMSE')
+summary(model_log)
+cat('RMSE for test data: ', sqrt(mean((exp(predict(model_log, test)) - test$price)^2)), '\n')
+```
+As we could see in the model summary, all the variable is significant to the model. A unit increase in view is associated with $e^{0.08738}$ times increase in price. A unit increase in sqft_living is associated with $e^{0.0004}$ times increase in price. A unit increase in grade is associated with $e^{0.23}$ times increase in price. A unite increase in yr_built is associated with $e^{-0.00322}$ times increase in price. A unit increase in lat is associated with $e^{1.344}$ times increase in price. Finally, a unit of increase in the interaction part between sqft_living and grade is associated with $e^{-0.00002}$ times increase in price. We also get the RMSE for test data is 222079.9.
+
+So far, we've looked at multiple regression models. But multiple regression model is difficult to visualize. To leave the reader with something more digestible, we introduce the regression tree, which doesn't require normalization of data, no scaling of data, and is very easy to explain and graph.
+
+```{r echo = FALSE}
+set.seed(1)
+tree.King = rpart(formula = price ~ view + sqft_living + grade + yr_built + lat, data = training, method = "anova")
+rpart.plot(tree.King)
+```
+
+
+```{r echo = FALSE}
+plotcp(tree.King)
+```
+
+10-fold cross validation is performed in the background to help us identify the number of terminal nodes to most efficiently use the tree. y-axis is cross validation error, lower x-axis is cost complexity, top x-axis is number of terminal nodes. Notice the dotted line cross the plot when the number of terminal nodes equals to 4. Thus, we could use a tree with 4 terminal nodes to expect similar accuracy as a tree with more nodes.
+
+#### Example: Buying a House Near the University
+
+```{r echo = FALSE}
+examp <- tibble(lat = 47.65548, view = 2, grade = 10, yr_built = 1984, sqft_living = 3180)
+model_log_est <- exp(predict(model_log, newdata = examp, type = "raw"))
+tree_est <- predict(tree.King, newdata = examp, type = "vector")
+cat('linear regression prediction:', model_log_est, '\n')
+cat('regression tree prediction:', tree_est, '\n')
+```
+
+> We took this example from redfin: https://www.redfin.com/WA/Seattle/4423-Latona-Ave-NE-98105/home/118624
+
+In the end, we provide the reader two different models/tools to estimate the price of their desired home when knowing the latitude, grade, yr_built and sqft_living. We took a random house currently on sale near UW and used our subject knowledge to estimate the corresponding predictor values. The linear regression model gives a closer result than the regression tree, given the values we provided for the five variables. 
+
+Of course this one example doesn't demonstrate the accuracy of our models, and the tree is especially problematic because its form can change significantly when there is a slight change in the training sampling. Therefore, for further interest, we may look at random forest, which reduces the variability in the estimations due to change in training data sampling.
+
+
