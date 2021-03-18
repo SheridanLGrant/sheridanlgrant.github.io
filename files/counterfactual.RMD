@@ -1,0 +1,72 @@
+---
+title: "Counterfactual Fairness"
+author: "Sheridan Grant"
+date: "3/16/2021"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+# The Red Car
+
+Generate data from red car graph:
+```{r}
+n <- 1e5
+aX <- 1/3
+uX <- 1/3
+uY <- 1/3
+sY <- 1/10
+
+A <- c(rep(T, n), rep(F, n))  # 1000 black, 1000 non-black drivers
+U <- rbinom(2*n, 1, 0.5)
+X <- rbinom(2*n, 1, aX * A + uX * U)
+Y <- rnorm(2*n, 0.2 + uY * U, sY)
+```
+
+Models:
+```{r}
+ftu <- lm(Y ~ X)
+race <- lm(Y ~ A)
+fta <- lm(Y ~ A + X)
+```
+Note that the set of variables $U$ from Kusner et al. (2017) is empty here. We seek a counterfactually fair algorithm through simple regression.
+
+Check model predictions:
+```{r}
+testData <- data.frame(A = A, X = X)
+
+testCombos <- rbind(expand.grid(A = c(F,T), X = c(0,1)),
+                    data.frame(A = T, X = aX))
+testCombos
+```
+First 4 rows are the race/red car combos. Last row represents the expected value of X if we consider a person with $(A,X) = (0, 0)$ and intervene to set $A = 1$.
+
+Fairness through Unawareness:
+```{r}
+cbind(testCombos, Yhat = predict(ftu, testCombos))
+```
+Not counterfactually fair, because first and last row have different predictions.
+```{r}
+ftu_costs <- predict(ftu, testData)
+cat('average insurance cost for black people:', mean(ftu_costs[A]), '\n')
+cat('average insurance cost for white people:', mean(ftu_costs[!A]), '\n')
+```
+Charges black people more despite no causal effect of race on accident rate.
+
+Race-only model (super illegal):
+```{r}
+cbind(testCombos, Yhat = predict(race, testCombos))
+```
+Counterfactually fair, but only because no causal effect of race on accident rate. But no price discrimination of any kind ruins your insurance business.
+
+Fairness through Awareness (illegal):
+```{r}
+cbind(testCombos, Yhat = predict(fta, testCombos))
+```
+Counterfactually fair, because the first and last rows are (in expectation) the same(!). Black people get both a discount (through the race coefficient) and a penalty (by being more likely to have a red car---remember, car color has no causal effect on accident rate). The discount and the penalty cancel out on average.
+```{r}
+fta_costs <- predict(fta, testData)
+cat('average insurance cost for black people:', mean(fta_costs[A]), '\n')
+cat('average insurance cost for white people:', mean(fta_costs[!A]), '\n')
+```
+Despite highly descriminative (and therefore profitable) insurance pricing, black and white people pay the same amount on average.
